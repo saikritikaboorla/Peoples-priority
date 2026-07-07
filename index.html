@@ -464,33 +464,33 @@
             </div>
 
             <!-- Grievance Severity Stats Visualizer -->
-            <div class="severity-section" style="margin: 16px 0; padding: 12px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
-              <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 8px; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-                <i class="fa-solid fa-chart-pie" style="color: #6366f1;"></i>
+            <div class="severity-section">
+              <div class="severity-section-title">
+                <i class="fa-solid fa-chart-pie"></i>
                 <span>Grievance Severity Breakdown</span>
               </div>
-              <div class="severity-bars" style="display: flex; gap: 4px; height: 8px; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,0.05); margin-bottom: 10px;">
+              <div class="severity-bars">
                 <div id="severity-bar-critical" style="width: 25%; background: var(--urgency-critical, #ef4444);"></div>
                 <div id="severity-bar-high" style="width: 35%; background: var(--urgency-high, #f97316);"></div>
                 <div id="severity-bar-medium" style="width: 30%; background: #eab308;"></div>
                 <div id="severity-bar-low" style="width: 10%; background: #10b981;"></div>
               </div>
-              <div class="severity-labels" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; text-align: center; font-size: 0.7rem;">
+              <div class="severity-labels">
                 <div>
-                  <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #ef4444; margin-right: 2px;"></span>
-                  <span style="color: var(--text-muted);">Critical:</span> <strong id="severity-val-critical" style="color: #ef4444;">—</strong>
+                  <span class="severity-dot severity-dot-critical"></span>
+                  <span class="severity-label-text">Critical:</span> <strong id="severity-val-critical" class="severity-val-critical">—</strong>
                 </div>
                 <div>
-                  <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #f97316; margin-right: 2px;"></span>
-                  <span style="color: var(--text-muted);">High:</span> <strong id="severity-val-high" style="color: #f97316;">—</strong>
+                  <span class="severity-dot severity-dot-high"></span>
+                  <span class="severity-label-text">High:</span> <strong id="severity-val-high" class="severity-val-high">—</strong>
                 </div>
                 <div>
-                  <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #eab308; margin-right: 2px;"></span>
-                  <span style="color: var(--text-muted);">Med:</span> <strong id="severity-val-medium" style="color: #eab308;">—</strong>
+                  <span class="severity-dot severity-dot-medium"></span>
+                  <span class="severity-label-text">Med:</span> <strong id="severity-val-medium" class="severity-val-medium">—</strong>
                 </div>
                 <div>
-                  <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981; margin-right: 2px;"></span>
-                  <span style="color: var(--text-muted);">Low:</span> <strong id="severity-val-low" style="color: #10b981;">—</strong>
+                  <span class="severity-dot severity-dot-low"></span>
+                  <span class="severity-label-text">Low:</span> <strong id="severity-val-low" class="severity-val-low">—</strong>
                 </div>
               </div>
             </div>
@@ -705,49 +705,25 @@
             </div>
           </div>
 
-          <!-- Dynamic Line Chart Panel -->
-          <div class="glass-panel chart-panel" style="display: flex; flex-direction: column; justify-content: space-between; padding: 24px;">
-            <div class="panel-header" style="margin-bottom: 12px; display: block;">
-              <h3 style="font-size: 1.15rem; font-family: var(--font-title); color: #fff;"><i class="fa-solid fa-chart-line" style="color: #6366f1; margin-right: 6px;"></i> Project Priorities Severity Curve</h3>
-              <p class="form-hint" style="margin-top: 4px; font-size: 0.8rem; color: var(--text-muted);">Real-time severity & composite priority curve of proposed constituency works.</p>
+          <!-- Citizen Priority Bar Chart Panel -->
+          <div class="glass-panel chart-panel priority-chart-panel">
+            <div class="panel-header chart-panel-header">
+              <h3><i class="fa-solid fa-chart-column"></i> Citizen Priority Analysis</h3>
+              <p class="form-hint">Citizen demand, infrastructure gap, and composite priority score for each ranked project.</p>
             </div>
-            
-            <div class="priority-chart-wrapper" style="position: relative; height: 180px; width: 100%; margin-top: 10px;">
-              <svg id="priority-line-chart" viewBox="0 0 400 160" width="100%" height="100%" style="overflow: visible;">
-                <!-- Grid lines -->
-                <line x1="40" y1="20" x2="380" y2="20" stroke="rgba(255,255,255,0.05)" stroke-width="1"></line>
-                <line x1="40" y1="60" x2="380" y2="60" stroke="rgba(255,255,255,0.05)" stroke-width="1"></line>
-                <line x1="40" y1="100" x2="380" y2="100" stroke="rgba(255,255,255,0.05)" stroke-width="1"></line>
-                <line x1="40" y1="140" x2="380" y2="140" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"></line>
-                
-                <!-- Y-Axis labels -->
-                <text x="30" y="24" fill="var(--text-dim)" font-size="8" text-anchor="end">100 (High Severity)</text>
-                <text x="30" y="64" fill="var(--text-dim)" font-size="8" text-anchor="end">50 (Medium)</text>
-                <text x="30" y="104" fill="var(--text-dim)" font-size="8" text-anchor="end">25 (Low)</text>
-                <text x="30" y="144" fill="var(--text-dim)" font-size="8" text-anchor="end">0</text>
 
-                <!-- Dynamic area and line paths -->
-                <path id="chart-area-path" d="" fill="url(#chart-gradient)" opacity="0.12"></path>
-                <path id="chart-line-path" d="" fill="none" stroke="url(#line-gradient)" stroke-width="3"></path>
-                
-                <!-- Dynamic dots and labels -->
-                <g id="chart-dots-group"></g>
-                
-                <!-- Gradients definitions -->
-                <defs>
-                  <linearGradient id="chart-gradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#6366f1"></stop>
-                    <stop offset="100%" stop-color="#a855f7" stop-opacity="0"></stop>
-                  </linearGradient>
-                  <linearGradient id="line-gradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stop-color="#6366f1"></stop>
-                    <stop offset="100%" stop-color="#a855f7"></stop>
-                  </linearGradient>
-                </defs>
-              </svg>
+            <div class="priority-chart-wrapper">
+              <svg id="priority-bar-chart" viewBox="0 0 520 280" width="100%" height="100%" aria-label="Citizen priority bar chart"></svg>
             </div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-align: center; margin-top: 8px;">
-              *Shows relative priority rank sequence (Project #1 to #6) scaled by weights settings.
+
+            <div class="priority-chart-legend">
+              <span class="priority-legend-item"><i class="priority-legend-swatch demand"></i> Citizen Demand</span>
+              <span class="priority-legend-item"><i class="priority-legend-swatch gap"></i> Infrastructure Gap</span>
+              <span class="priority-legend-item"><i class="priority-legend-swatch score"></i> Priority Score</span>
+            </div>
+
+            <div class="priority-chart-footnote">
+              Y-axis: priority metrics (0–100) · X-axis: ranked citizen projects for the active constituency
             </div>
           </div>
         </div>

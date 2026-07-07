@@ -2444,8 +2444,8 @@ function updateRecommendationsTable() {
     tbody.appendChild(row);
   });
 
-  // Render the Priority Curve Graph
-  updatePriorityLineChart(calculated);
+  // Render the Priority Bar Chart
+  updatePriorityBarChart(calculated);
 }
 
 // 9. MP Executive Report Generator Modal
@@ -2590,6 +2590,7 @@ function setupThemeToggle() {
     document.documentElement.setAttribute("data-theme", newTheme);
     localStorage.setItem("theme", newTheme);
     updateThemeButtonUI(newTheme);
+    updateRecommendationsTable();
   });
 }
 
@@ -2607,53 +2608,74 @@ function updateThemeButtonUI(theme) {
   }
 }
 
-// Render dynamic project priorities line/area graph
-function updatePriorityLineChart(calculated) {
-  const linePath = document.getElementById("chart-line-path");
-  const areaPath = document.getElementById("chart-area-path");
-  const dotsGroup = document.getElementById("chart-dots-group");
-  if (!linePath || !areaPath || !dotsGroup || !calculated || !calculated.length) return;
+// Render grouped bar chart for citizen project priorities
+function updatePriorityBarChart(calculated) {
+  const svg = document.getElementById("priority-bar-chart");
+  if (!svg || !calculated || !calculated.length) return;
 
-  const points = calculated.map((proj, idx) => {
-    const x = 40 + idx * 68;
-    const y = 140 - (proj.priorityScore / 100 * 120);
-    return { x, y, score: proj.priorityScore, title: proj.title };
+  const isLight = document.documentElement.getAttribute("data-theme") === "light";
+  const axisColor = isLight ? "#64748b" : "#94a3b8";
+  const gridColor = isLight ? "rgba(15, 23, 42, 0.08)" : "rgba(255, 255, 255, 0.06)";
+  const labelColor = isLight ? "#334155" : "#cbd5e1";
+
+  const projects = calculated.slice(0, 5);
+  const chartLeft = 52;
+  const chartRight = 500;
+  const chartTop = 24;
+  const chartBottom = 210;
+  const chartHeight = chartBottom - chartTop;
+  const groupWidth = (chartRight - chartLeft) / projects.length;
+  const barWidth = Math.min(14, groupWidth / 5);
+  const gap = 4;
+
+  function yPos(value) {
+    return chartBottom - (Math.max(0, Math.min(100, value)) / 100) * chartHeight;
+  }
+
+  function shortenTitle(title) {
+    const words = title.split(" ");
+    if (words.length <= 3) return title;
+    return words.slice(0, 3).join(" ") + "…";
+  }
+
+  let svgHtml = "";
+
+  [0, 25, 50, 75, 100].forEach(function(tick) {
+    const y = yPos(tick);
+    svgHtml += `<line x1="${chartLeft}" y1="${y}" x2="${chartRight}" y2="${y}" stroke="${gridColor}" stroke-width="1"></line>`;
+    svgHtml += `<text x="${chartLeft - 8}" y="${y + 3}" fill="${axisColor}" font-size="9" text-anchor="end">${tick}</text>`;
   });
 
-  const lineD = "M " + points.map(p => p.x + "," + p.y).join(" L ");
-  const areaD = lineD + " L 380,140 L 40,140 Z";
+  svgHtml += `<line x1="${chartLeft}" y1="${chartTop}" x2="${chartLeft}" y2="${chartBottom}" stroke="${gridColor}" stroke-width="1.5"></line>`;
+  svgHtml += `<line x1="${chartLeft}" y1="${chartBottom}" x2="${chartRight}" y2="${chartBottom}" stroke="${gridColor}" stroke-width="1.5"></line>`;
 
-  linePath.setAttribute("d", lineD);
-  areaPath.setAttribute("d", areaD);
+  svgHtml += `<text x="14" y="${(chartTop + chartBottom) / 2}" fill="${axisColor}" font-size="9" font-weight="600" transform="rotate(-90 14 ${(chartTop + chartBottom) / 2})" text-anchor="middle">Priority Metrics (0–100)</text>`;
+  svgHtml += `<text x="${(chartLeft + chartRight) / 2}" y="252" fill="${axisColor}" font-size="9" font-weight="600" text-anchor="middle">Ranked Citizen Priority Projects</text>`;
 
-  dotsGroup.innerHTML = "";
-  points.forEach((p, idx) => {
-    // Circle dot
-    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    circle.setAttribute("cx", p.x);
-    circle.setAttribute("cy", p.y);
-    circle.setAttribute("r", 4.5);
-    circle.setAttribute("fill", idx === 0 ? "#f43f5e" : "#6366f1");
-    circle.setAttribute("stroke", "var(--bg-main)");
-    circle.setAttribute("stroke-width", "1.5");
-    circle.style.transition = "all 0.3s ease";
-    
-    // Label above dot
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    text.setAttribute("x", p.x);
-    text.setAttribute("y", p.y - 8);
-    text.setAttribute("fill", "var(--text-main)");
-    text.setAttribute("font-size", "8");
-    text.setAttribute("font-weight", "700");
-    text.setAttribute("text-anchor", "middle");
-    text.textContent = p.score + "%";
-    
-    // Tooltip
-    const tooltip = document.createElementNS("http://www.w3.org/2000/svg", "title");
-    tooltip.textContent = `${idx + 1}. ${p.title} (${p.score}%)`;
-    circle.appendChild(tooltip);
-    
-    dotsGroup.appendChild(circle);
-    dotsGroup.appendChild(text);
+  const metrics = [
+    { key: "demandBase", color: "#0ea5e9", label: "Demand" },
+    { key: "gapBase", color: "#f97316", label: "Gap" },
+    { key: "priorityScore", color: "#6366f1", label: "Score" }
+  ];
+
+  projects.forEach(function(proj, idx) {
+    const groupCenter = chartLeft + groupWidth * idx + groupWidth / 2;
+    const groupStart = groupCenter - ((barWidth * 3) + (gap * 2)) / 2;
+
+    metrics.forEach(function(metric, mIdx) {
+      const value = proj[metric.key];
+      const x = groupStart + mIdx * (barWidth + gap);
+      const y = yPos(value);
+      const height = chartBottom - y;
+      svgHtml += `<rect x="${x}" y="${y}" width="${barWidth}" height="${height}" rx="2" fill="${metric.color}" opacity="0.88"><title>${proj.title} — ${metric.label}: ${value}/100</title></rect>`;
+      svgHtml += `<text x="${x + barWidth / 2}" y="${y - 4}" fill="${labelColor}" font-size="7" font-weight="700" text-anchor="middle">${value}</text>`;
+    });
+
+    const rankLabel = "#" + (idx + 1);
+    svgHtml += `<text x="${groupCenter}" y="${chartBottom + 14}" fill="${labelColor}" font-size="8" font-weight="700" text-anchor="middle">${rankLabel}</text>`;
+    svgHtml += `<text x="${groupCenter}" y="${chartBottom + 26}" fill="${axisColor}" font-size="7" text-anchor="middle">${shortenTitle(proj.title)}</text>`;
+    svgHtml += `<text x="${groupCenter}" y="${chartBottom + 36}" fill="${axisColor}" font-size="6.5" text-anchor="middle">${proj.theme}</text>`;
   });
+
+  svg.innerHTML = svgHtml;
 }
