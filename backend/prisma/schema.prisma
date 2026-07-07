@@ -1,0 +1,231 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CITIZEN
+  MP
+  ADMIN
+}
+
+enum SubmissionChannel {
+  WEB
+  MOBILE
+  WHATSAPP
+  SMS
+  VOICE
+  SOCIAL
+  OFFLINE
+}
+
+enum SubmissionType {
+  TEXT
+  VOICE
+  IMAGE
+  MIXED
+}
+
+enum FeedbackStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  ARCHIVED
+}
+
+enum ThemeCategory {
+  ROAD_INFRASTRUCTURE
+  WATER_SUPPLY
+  EDUCATION
+  HEALTHCARE
+  PUBLIC_TRANSPORT
+  EMPLOYMENT
+  ELECTRICITY
+  SANITATION
+  AGRICULTURE
+  OTHER
+}
+
+enum Sentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+  URGENT
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String?  @unique
+  phone     String?  @unique
+  name      String?
+  role      UserRole @default(CITIZEN)
+  password  String?
+  constituencyId String?
+  constituency   Constituency? @relation(fields: [constituencyId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  feedback  Feedback[]
+}
+
+model Constituency {
+  id          String   @id @default(uuid())
+  name        String
+  state       String
+  district    String
+  mpName      String?
+  population  Int?
+  literacyRate Float?
+  users       User[]
+  districts   District[]
+  feedback    Feedback[]
+  recommendations ProjectRecommendation[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model District {
+  id             String   @id @default(uuid())
+  name           String
+  constituencyId String
+  constituency   Constituency @relation(fields: [constituencyId], references: [id])
+  population     Int?
+  literacyRate   Float?
+  schoolEnrollment Int?
+  hospitalCount  Int?
+  roadConditionIndex Float?
+  waterCoverage  Float?
+  employmentRate Float?
+  latitude       Float?
+  longitude      Float?
+  feedback       Feedback[]
+  publicDatasets PublicDataset[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([constituencyId])
+}
+
+model Feedback {
+  id              String            @id @default(uuid())
+  citizenId       String?
+  citizen         User?             @relation(fields: [citizenId], references: [id])
+  isAnonymous     Boolean           @default(false)
+  channel         SubmissionChannel @default(WEB)
+  submissionType  SubmissionType    @default(TEXT)
+  status          FeedbackStatus    @default(PENDING)
+  rawContent      String?
+  processedContent String?
+  detectedLanguage String?
+  translatedContent String?
+  sentiment       Sentiment?
+  themeId         String?
+  theme           Theme?            @relation(fields: [themeId], references: [id])
+  keywords        String[]
+  latitude        Float?
+  longitude       Float?
+  locationName    String?
+  districtId      String?
+  district        District?         @relation(fields: [districtId], references: [id])
+  constituencyId  String?
+  constituency    Constituency?     @relation(fields: [constituencyId], references: [id])
+  media           MediaAttachment[]
+  duplicateGroupId String?
+  aiSummary       String?
+  priorityScore   Float?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([themeId])
+  @@index([districtId])
+  @@index([constituencyId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model MediaAttachment {
+  id          String   @id @default(uuid())
+  feedbackId  String
+  feedback    Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+  type        String
+  url         String
+  mimeType    String?
+  fileName    String?
+  aiDescription String?
+  aiClassification String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([feedbackId])
+}
+
+model Theme {
+  id          String        @id @default(uuid())
+  name        String        @unique
+  category    ThemeCategory
+  description String?
+  keywords    String[]
+  feedbackCount Int         @default(0)
+  feedback    Feedback[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model PublicDataset {
+  id          String   @id @default(uuid())
+  name        String
+  category    String
+  source      String?
+  districtId  String?
+  district    District? @relation(fields: [districtId], references: [id])
+  data        Json
+  lastUpdated DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([districtId])
+  @@index([category])
+}
+
+model ProjectRecommendation {
+  id              String   @id @default(uuid())
+  title           String
+  description     String?
+  themeCategory   ThemeCategory
+  constituencyId  String
+  constituency    Constituency @relation(fields: [constituencyId], references: [id])
+  districtId      String?
+  demandScore     Float
+  impactScore     Float
+  costScore       Float
+  budgetScore     Float
+  planAlignmentScore Float
+  priorityScore   Float
+  estimatedCost   String?
+  affectedPopulation Int?
+  citizenRequestCount Int @default(0)
+  rationale       String?
+  rank            Int?
+  status          String   @default("RECOMMENDED")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([constituencyId])
+  @@index([priorityScore])
+}
+
+model DevelopmentPlan {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  category    ThemeCategory
+  districtId  String?
+  budget      Float?
+  status      String   @default("PROPOSED")
+  startYear   Int?
+  endYear     Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

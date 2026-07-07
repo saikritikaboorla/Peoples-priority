@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>People's Priority - AI Decision Support Platform</title>
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Demo Login Dashboard Overlay -->
+  <div id="login-screen" class="login-overlay">
+    <div class="login-card glass-panel">
+      <div class="login-header">
+        <div class="logo-icon">PP</div>
+        <h2 data-i18n="login_title">Demo Login Dashboard</h2>
+        <p data-i18n="login_subtitle">Select your portal access mode and default language</p>
+      </div>
+
+      <div class="login-form">
+        <div class="form-group">
+          <label data-i18n="login_role_lbl">Access Portal Mode</label>
+          <div class="role-selector-grid">
+            <div class="role-card active" id="role-citizen" data-role="citizen">
+              <i class="fa-solid fa-users"></i>
+              <div class="role-text">
+                <span class="role-title" data-i18n="role_citizen_title">Citizen Portal</span>
+                <span class="role-desc" data-i18n="role_citizen_desc">Submit issues & track progress</span>
+              </div>
+            </div>
+            <div class="role-card" id="role-mp" data-role="mp">
+              <i class="fa-solid fa-user-tie"></i>
+              <div class="role-text">
+                <span class="role-title" data-i18n="role_mp_title">MP Dashboard</span>
+                <span class="role-desc" data-i18n="role_mp_desc">Analyze needs & rank projects</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label data-i18n="login_lang_lbl">Choose Language</label>
+          <select id="login-language">
+            <option value="en" selected>English</option>
+            <option value="hi">Hindi (हिन्दी)</option>
+            <option value="ta">Tamil (தமிழ்)</option>
+            <option value="te">Telugu (తెలుగు)</option>
+            <option value="kn">Kannada (ಕನ್ನಡ)</option>
+            <option value="bn">Bengali (বাংলা)</option>
+          </select>
+        </div>
+
+        <button class="btn-primary" id="btn-login" style="margin-top: 10px;">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          <span data-i18n="login_btn">Enter Portal</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Application Container -->
+  <div class="app-container" id="app-wrapper" style="display: none;">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="logo-section">
+        <div class="logo-icon">PP</div>
+        <div class="logo-text">
+          <h1>People's Priority</h1>
+          <p data-i18n="side_subtitle">AI Decision Support</p>
+        </div>
+      </div>
+      
+      <nav class="nav-links" id="sidebar-nav">
+        <!-- Citizen Links -->
+        <div class="nav-item active" data-tab="citizen-portal" data-nav-role="citizen">
+          <i class="fa-solid fa-file-pen"></i>
+          <span data-i18n="nav_citizen_submit">Submit Suggestions</span>
+        </div>
+        <div class="nav-item" data-tab="citizen-submissions" data-nav-role="citizen">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <span data-i18n="nav_citizen_history">My Submissions</span>
+        </div>
+
+        <!-- MP Links -->
+        <div class="nav-item active" data-tab="mp-dashboard" data-nav-role="mp">
+          <i class="fa-solid fa-chart-line"></i>
+          <span data-i18n="nav_mp_dashboard">MP Analytics</span>
+        </div>
+        <div class="nav-item" data-tab="mp-sandbox" data-nav-role="mp">
+          <i class="fa-solid fa-microchip"></i>
+          <span data-i18n="nav_mp_sandbox">AI Parsing Sandbox</span>
+        </div>
+        <div class="nav-item" data-tab="mp-priorities" data-nav-role="mp">
+          <i class="fa-solid fa-list-check"></i>
+          <span data-i18n="nav_mp_recommend">Project Priorities</span>
+        </div>
+
+        <!-- Shared Links -->
+        <div class="nav-item" data-tab="shared-architecture" data-nav-role="both">
+          <i class="fa-solid fa-network-wired"></i>
+          <span data-i18n="nav_sys_architecture">System Architecture</span>
+        </div>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="user-avatar" id="footer-avatar">
+          <i class="fa-solid fa-user-tie"></i>
+        </div>
+        <div class="user-info">
+          <h4 id="footer-username">MP Office</h4>
+          <p id="footer-role" data-i18n="role_mp">Constituency Lead</p>
+        </div>
+        <button class="logout-btn" id="btn-logout" title="Log Out" data-i18n="logout_tooltip">
+          <i class="fa-solid fa-power-off"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top header bar (always visible post-login) -->
+      <div class="app-header-bar">
+        <div class="header-greeting">
+          <span data-i18n="welcome_back">Welcome Back,</span>
+          <strong id="greeting-username">Honorable MP</strong>
+        </div>
+        <div class="header-right">
+          <!-- Dynamic Language Switcher post-login -->
+          <div class="lang-switcher-post">
+            <i class="fa-solid fa-globe"></i>
+            <select id="post-language-selector">
+              <option value="en">English</option>
+              <option value="hi">Hindi (हिन्दी)</option>
+              <option value="ta">Tamil (தமிழ்)</option>
+              <option value="te">Telugu (తెలుగు)</option>
+              <option value="kn">Kannada (ಕನ್ನಡ)</option>
+              <option value="bn">Bengali (বাংলা)</option>
+            </select>
+          </div>
+          <span class="badge-engine" data-i18n="ai_status">AI Engine Active</span>
+          <span class="date-pill" id="live-date">July 7, 2026</span>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- VIEW: Citizen Portal: Feedback Submission Form -->
+      <!-- ============================================== -->
+      <section id="citizen-portal" class="tab-view active">
+        <div class="page-header">
+          <div class="header-title">
+            <h2 data-i18n="cit_portal_title">Submit Feedback & Suggestions</h2>
+            <p data-i18n="cit_portal_desc">Speak or type your developmental requests directly to your regional MP office</p>
+          </div>
+        </div>
+
+        <div class="portal-layout">
+          <!-- Submission form card -->
+          <div class="glass-panel">
+            <div class="panel-header">
+              <h3 data-i18n="cit_form_heading">Citizen Statement Submission</h3>
+              <p data-i18n="cit_form_sub">All uploads are processed through automated AI translation layers.</p>
+            </div>
+
+            <!-- Auto location detection status -->
+            <div class="form-group">
+              <div class="location-box" id="location-status-container">
+                <button class="btn-secondary" id="btn-enable-gps" style="width: auto;">
+                  <i class="fa-solid fa-location-crosshairs"></i>
+                  <span data-i18n="gps_enable_btn">Enable Location Sharing</span>
+                </button>
+                <div class="location-status-text" id="gps-status-label" data-i18n="gps_disabled">Location data: Disabled (Using default)</div>
+              </div>
+            </div>
+
+            <div class="form-group-row">
+              <div class="form-group">
+                <label data-i18n="lbl_submission_state">State / Territory</label>
+                <select id="portal-state-select">
+                  <option value="Tamil Nadu">Tamil Nadu</option>
+                  <option value="Karnataka">Karnataka</option>
+                  <option value="Maharashtra">Maharashtra</option>
+                  <option value="Uttar Pradesh">Uttar Pradesh</option>
+                  <option value="West Bengal">West Bengal</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label data-i18n="lbl_submission_channel">Submission Channel</label>
+                <select id="portal-channel-select">
+                  <option value="Web" selected>Web Application Portal</option>
+                  <option value="WhatsApp">WhatsApp Message</option>
+                  <option value="IVR">Voice Call (IVR)</option>
+                  <option value="SMS">SMS Portal</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label data-i18n="lbl_text_transcript">Type feedback directly (or tap Microphone to record speech)</label>
+              <textarea id="portal-feedback-text" rows="5" placeholder="Describe the issue in your chosen language..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label data-i18n="lbl_attachments">Media Attachments (Record Audio / Photo Upload)</label>
+              <div class="attachment-slots">
+                <!-- Recording toggle: first click starts, second click stops -->
+                <div class="upload-slot" id="slot-mic-record">
+                  <div class="record-pulse-ring" id="mic-pulse-ring"></div>
+                  <i class="fa-solid fa-microphone" id="mic-icon-graphic"></i>
+                  <span id="txt-mic-status" data-i18n="slot_record_voice">Tap to Record Voice</span>
+                </div>
+                <div class="upload-slot" id="slot-camera-upload">
+                  <i class="fa-solid fa-camera"></i>
+                  <span id="txt-cam-status" data-i18n="slot_upload_photo">Upload / Snap Photo</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Simulated live recording timer or indicators -->
+            <div class="recording-bar" id="record-timer-bar" style="display: none;">
+              <span class="record-indicator-dot"></span>
+              <span id="record-timer-clock">00:00</span>
+              <span data-i18n="recording_active" style="font-size:0.75rem; color:var(--text-muted);">Recording Active. Tap slot again to STOP & Transcribe...</span>
+            </div>
+
+            <!-- Custom Photo Preview -->
+            <div class="image-preview-panel" id="portal-photo-preview">
+              <div class="image-preview-overlay" id="portal-photo-filename">citizen_upload.jpg</div>
+              <img id="portal-preview-img" src="" alt="Citizen attachment preview">
+            </div>
+
+            <button class="btn-primary" id="btn-citizen-submit">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span data-i18n="btn_submit_feedback">Submit Feedback</span>
+            </button>
+          </div>
+
+          <!-- Pipeline Simulation Tracker -->
+          <div class="glass-panel">
+            <div class="panel-header">
+              <h3 data-i18n="visualizer_heading">Multilingual AI Pipelines Tracker</h3>
+              <p data-i18n="visualizer_sub">Visualizing ingestion, translation, OCR, and classification steps</p>
+            </div>
+            
+            <div class="pipeline-visualizer">
+              <div class="pipeline-step" id="portal-step-1">
+                <div class="step-icon"><i class="fa-solid fa-circle-check"></i></div>
+                <div class="step-text">
+                  <h5 data-i18n="step_1_title">1. Location & Channel Validation</h5>
+                  <p data-i18n="step_1_desc">Geocoding GPS points, verifying state boundary polygons, and queuing messages.</p>
+                </div>
+              </div>
+              <div class="pipeline-step" id="portal-step-2">
+                <div class="step-icon"><i class="fa-solid fa-microphone-lines"></i></div>
+                <div class="step-text">
+                  <h5 data-i18n="step_2_title">2. Voice Transcribe & OCR Scanning</h5>
+                  <p data-i18n="step_2_desc">Executing speech-to-text transcription via Whisper and classifying image faults.</p>
+                </div>
+              </div>
+              <div class="pipeline-step" id="portal-step-3">
+                <div class="step-icon"><i class="fa-solid fa-language"></i></div>
+                <div class="step-text">
+                  <h5 data-i18n="step_3_title">3. Bhashini AI Translation Layer</h5>
+                  <p data-i18n="step_3_desc">Detecting languages and producing unified English translations.</p>
+                </div>
+              </div>
+              <div class="pipeline-step" id="portal-step-4">
+                <div class="step-icon"><i class="fa-solid fa-tags"></i></div>
+                <div class="step-text">
+                  <h5 data-i18n="step_4_title">4. Theme NER Classification</h5>
+                  <p data-i18n="step_4_desc">Running named entity token parsing to isolate wards, sectors, and issues.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ingestion results card -->
+            <div class="glass-panel metadata-output-card" id="portal-meta-card" style="margin-top: 16px;">
+              <div class="meta-status-title">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span data-i18n="metadata_header">Processed Output Metadata</span>
+              </div>
+              <div class="meta-grid">
+                <div class="meta-lbl" data-i18n="meta_orig">Original Text:</div>
+                <div class="meta-val" id="portal-meta-original" style="font-style: italic;">...</div>
+                
+                <div class="meta-lbl" data-i18n="meta_trans">Translation:</div>
+                <div class="meta-val" id="portal-meta-translation">...</div>
+                
+                <div class="meta-lbl" data-i18n="meta_theme">Theme Tag:</div>
+                <div class="meta-val"><span id="portal-meta-theme" class="badge">None</span></div>
+                
+                <div class="meta-lbl" data-i18n="meta_urgency">Severity:</div>
+                <div class="meta-val"><span id="portal-meta-urgency" class="score-badge">None</span></div>
+                
+                <div class="meta-lbl" data-i18n="meta_loc">Routed State:</div>
+                <div class="meta-val" id="portal-meta-state">...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW: Citizen Submissions History List -->
+      <!-- ============================================== -->
+      <section id="citizen-submissions" class="tab-view">
+        <div class="page-header">
+          <div class="header-title">
+            <h2 data-i18n="cit_history_title">My Submitted Suggestions</h2>
+            <p data-i18n="cit_history_desc">Track responses and prioritizing stats for your requests</p>
+          </div>
+        </div>
+
+        <div class="glass-panel">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th data-i18n="th_date">Date Submitted</th>
+                  <th data-i18n="th_state">State Area</th>
+                  <th data-i18n="th_content">Feedback Statement Summary</th>
+                  <th data-i18n="th_theme">Classified Theme</th>
+                  <th data-i18n="th_urgency">Severity</th>
+                  <th data-i18n="th_status">Status</th>
+                </tr>
+              </thead>
+              <tbody id="citizen-submissions-list">
+                <!-- User custom feedback is pushed here dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW: MP Dashboard View (State-Wise Details) -->
+      <!-- ============================================== -->
+      <section id="mp-dashboard" class="tab-view">
+        <div class="page-header">
+          <div class="header-title">
+            <h2 data-i18n="mp_dash_title">MP Development Planning Hub</h2>
+            <p data-i18n="mp_dash_desc">State-wide aggregated feedback dashboards and public demographic indicators</p>
+          </div>
+        </div>
+
+        <!-- KPI row -->
+        <div class="kpi-row">
+          <div class="glass-panel kpi-card">
+            <div class="kpi-content">
+              <h4 data-i18n="kpi_total">Total State Submissions</h4>
+              <div class="kpi-value" id="kpi-val-submissions">410 <span class="kpi-pill success" id="kpi-stat-sub-pill">+12% this wk</span></div>
+            </div>
+            <div class="kpi-icon"><i class="fa-solid fa-comments"></i></div>
+          </div>
+          <div class="glass-panel kpi-card">
+            <div class="kpi-content">
+              <h4 data-i18n="kpi_urgent">Urgent Issues</h4>
+              <div class="kpi-value" id="kpi-val-urgent">22 <span class="kpi-pill danger" data-i18n="kpi_pill_action">Requires Action</span></div>
+            </div>
+            <div class="kpi-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          </div>
+          <div class="glass-panel kpi-card">
+            <div class="kpi-content">
+              <h4 data-i18n="kpi_accuracy">AI Core Accuracy</h4>
+              <div class="kpi-value">94.8% <span class="kpi-pill info" data-i18n="kpi_pill_whisper">Bhashini LLM</span></div>
+            </div>
+            <div class="kpi-icon"><i class="fa-solid fa-circle-check"></i></div>
+          </div>
+          <div class="glass-panel kpi-card">
+            <div class="kpi-content">
+              <h4 data-i18n="kpi_budget">State Fund Limit</h4>
+              <div class="kpi-value" id="kpi-val-budget">₹12.0 Cr <span class="kpi-pill warning" id="kpi-stat-bud-pill">40% Utilized</span></div>
+            </div>
+            <div class="kpi-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+          </div>
+        </div>
+
+        <!-- Middle section: India Map + Regional demographics -->
+        <div class="dashboard-grid">
+          <!-- SVG India State Map -->
+          <div class="glass-panel map-card">
+            <div class="panel-header">
+              <h3 data-i18n="map_heading">India State Selection Map</h3>
+              <div class="map-controls">
+                <button class="map-control-btn" data-mp-layer="demands" data-i18n="map_btn_demands">Citizen Demands</button>
+                <button class="map-control-btn" data-mp-layer="gap" data-i18n="map_btn_gap">Infrastructure Gap</button>
+                <button class="map-control-btn active" data-mp-layer="literacy" data-i18n="map_btn_lit">Literacy Index</button>
+              </div>
+            </div>
+            
+            <div class="svg-map-container" style="height: 400px;">
+              <svg class="map-svg" viewBox="0 0 500 500" width="100%" height="100%">
+                <!-- Highly Stylized Interactive India Map Grid -->
+                <!-- North/West (Uttar Pradesh) -->
+                <polygon id="state-up" class="map-ward-poly" points="180,160 300,150 280,220 180,240" />
+                <text x="240" y="195" class="map-label">Uttar Pradesh</text>
+
+                <!-- East (West Bengal) -->
+                <polygon id="state-wb" class="map-ward-poly" points="300,150 380,180 350,270 280,220" />
+                <text x="325" y="220" class="map-label">West Bengal</text>
+
+                <!-- West (Maharashtra) -->
+                <polygon id="state-mh" class="map-ward-poly" points="100,260 210,250 190,320 120,330" />
+                <text x="145" y="295" class="map-label">Maharashtra</text>
+
+                <!-- South-West (Karnataka) -->
+                <polygon id="state-kn" class="map-ward-poly" points="120,330 190,320 170,410 130,390" />
+                <text x="155" y="370" class="map-label">Karnataka</text>
+
+                <!-- South (Tamil Nadu) -->
+                <polygon id="state-tn" class="map-ward-poly active" points="190,320 230,340 200,440 170,410" />
+                <text x="205" y="390" class="map-label">Tamil Nadu</text>
+              </svg>
+            </div>
+
+            <div class="map-legend">
+              <div class="legend-title" id="mp-legend-title">Literacy Index</div>
+              <div class="legend-gradient" id="mp-legend-gradient"></div>
+              <div class="legend-labels">
+                <span id="mp-legend-min">Low (<70%)</span>
+                <span id="mp-legend-max">High (>90%)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selected State Details Card -->
+          <div class="glass-panel ward-details-card">
+            <div class="ward-header">
+              <h3 id="mp-state-title">Tamil Nadu</h3>
+              <span id="mp-state-region">South Zone</span>
+            </div>
+            
+            <!-- Quick State dropdown selector for accessibility -->
+            <div class="form-group" style="margin-bottom: 10px;">
+              <label style="font-size:0.75rem;" data-i18n="lbl_select_state_quick">Quick Switch State:</label>
+              <select id="mp-state-dropdown-selector" style="padding:6px 10px; font-size:0.8rem;">
+                <option value="Tamil Nadu" selected>Tamil Nadu</option>
+                <option value="Karnataka">Karnataka</option>
+                <option value="Maharashtra">Maharashtra</option>
+                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                <option value="West Bengal">West Bengal</option>
+              </select>
+            </div>
+
+            <div class="stats-list">
+              <div class="stat-item">
+                <span data-i18n="lbl_pop_density">Population Density</span>
+                <span class="stat-val" id="mp-state-density">555 / sq km</span>
+              </div>
+              <div class="stat-item">
+                <span data-i18n="lbl_literacy_rate">Literacy Index</span>
+                <span class="stat-val" id="mp-state-literacy">80.1%</span>
+              </div>
+              <div class="stat-item">
+                <span data-i18n="lbl_school_enroll">School Enrollment</span>
+                <span class="stat-val" id="mp-state-enrollment">96.2%</span>
+              </div>
+              <div class="stat-item">
+                <span data-i18n="lbl_water_access">Clean Water Access</span>
+                <span class="stat-val" id="mp-state-water">92.0%</span>
+              </div>
+            </div>
+
+            <div class="demands-chart">
+              <div class="demands-title" data-i18n="top_state_demands">Top State Public Demands</div>
+              <div id="mp-state-demands-container">
+                <!-- Dynamic bars loaded in app.js -->
+              </div>
+            </div>
+
+            <div class="feedback-feed-title" data-i18n="recent_state_feedback">Latest Feedback Submitted in State</div>
+            <div class="feed-card" id="mp-state-recent-feedback-feed">
+              <!-- Load in app.js -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW: MP AI Processing Sandbox -->
+      <!-- ============================================== -->
+      <section id="mp-sandbox" class="tab-view">
+        <div class="page-header">
+          <div class="header-title">
+            <h2 data-i18n="sandbox_title">AI Parsing Sandbox</h2>
+            <p data-i18n="sandbox_desc">Test Bhashini translations, NER chips, and topic classifier confidence on raw inputs</p>
+          </div>
+        </div>
+
+        <div class="sandbox-layout">
+          <!-- Text Sandbox Form -->
+          <div class="glass-panel">
+            <div class="panel-header">
+              <h3 data-i18n="sandbox_heading">NLP Real-time Statement Parser</h3>
+              <p data-i18n="sandbox_sub">Write or paste any statement in regional languages. The NLP parser runs immediate entity mappings.</p>
+            </div>
+            
+            <div class="form-group">
+              <label data-i18n="lbl_sandbox_input">Input Statement</label>
+              <textarea id="sandbox-statement-input" rows="6" placeholder="Type text to extract parameters..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label data-i18n="lbl_sandbox_quick">Quick Load Statements</label>
+              <div class="tags-cloud">
+                <button class="tag-btn" data-sandbox-key="hindi-road">Hindi (Road)</button>
+                <button class="tag-btn" data-sandbox-key="tamil-water">Tamil (Water)</button>
+                <button class="tag-btn" data-sandbox-key="telugu-health">Telugu (Health)</button>
+                <button class="tag-btn" data-sandbox-key="bengali-school">Bengali (School)</button>
+                <button class="tag-btn" data-sandbox-key="kannada-power">Kannada (Power)</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="weight-meta">
+                <label data-i18n="lbl_nlp_threshold">NLP Topic Match Threshold</label>
+                <span class="weight-val" id="sandbox-match-threshold-label">75%</span>
+              </div>
+              <div class="slider-wrapper">
+                <input type="range" id="sandbox-match-threshold" min="50" max="95" value="75">
+              </div>
+            </div>
+          </div>
+
+          <!-- Sandbox Parsing Results Visualizer -->
+          <div class="sandbox-results">
+            <!-- Language Detection and translation card -->
+            <div class="glass-panel result-card">
+              <div class="result-card-header" data-i18n="lang_ident">Language Identification</div>
+              <div class="stats-list" style="margin-bottom: 12px;">
+                <div class="stat-item" style="border:none; padding:4px 0;">
+                  <span data-i18n="detected_lang_lbl">Detected Lang:</span>
+                  <span class="stat-val" id="sandbox-lang-detected">Tamil (ta)</span>
+                </div>
+                <div class="stat-item" style="border:none; padding:4px 0;">
+                  <span data-i18n="confidence_lbl">Confidence:</span>
+                  <span class="stat-val" id="sandbox-lang-confidence">97.1%</span>
+                </div>
+              </div>
+              
+              <div class="result-card-header" data-i18n="machine_trans">Machine Translation (Bhashini)</div>
+              <p id="sandbox-trans-text" style="font-size: 0.82rem; font-style: italic; color: #cbd5e1; line-height: 1.4; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px;">
+                ...
+              </p>
+            </div>
+
+            <!-- NER visualization card -->
+            <div class="glass-panel result-card">
+              <div class="result-card-header" data-i18n="ner_extract">Named Entities Extracted (NER)</div>
+              <div class="ner-chips" id="sandbox-extracted-ner-chips">
+                <!-- chips loaded dynamically -->
+              </div>
+            </div>
+
+            <!-- Topic match and sentiment cards -->
+            <div class="glass-panel result-card">
+              <div class="result-card-header" data-i18n="topic_class">Topic Classification</div>
+              <div class="sandbox-bar-wrapper">
+                <div class="sandbox-bar-header">
+                  <span id="sandbox-extracted-topic">Water Supply</span>
+                  <span class="stat-val" id="sandbox-extracted-topic-score">98% match</span>
+                </div>
+                <div class="sandbox-bar-bg">
+                  <div class="sandbox-bar-fill" id="sandbox-extracted-topic-fill" style="width: 98%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sentiment scale -->
+            <div class="glass-panel result-card">
+              <div class="result-card-header" data-i18n="sentiment_analysis">Sentiment & Severity Index</div>
+              <div class="sentiment-bar">
+                <div class="sentiment-marker" id="sandbox-sentiment-marker-bubble" style="left: 22%;"></div>
+              </div>
+              <div class="sentiment-legend-labels">
+                <span data-i18n="sentiment_neg">Negative (Urgent)</span>
+                <span data-i18n="sentiment_neu">Neutral</span>
+                <span data-i18n="sentiment_pos">Positive</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW: MP Project Prioritization Engine -->
+      <!-- ============================================== -->
+      <section id="mp-priorities" class="tab-view">
+        <div class="page-header">
+          <div class="header-title">
+            <h2 data-i18n="recommendations_title">Project Prioritization Dashboard</h2>
+            <p data-i18n="recommendations_desc">Balance budget limitations and public demands using weights adjustments</p>
+          </div>
+        </div>
+
+        <!-- Prioritization Sliders Panel -->
+        <div class="glass-panel weights-panel">
+          <div class="panel-header">
+            <h3 data-i18n="weights_heading">Prioritization Mechanics Weights Settings</h3>
+            <p data-i18n="weights_desc">Modify sliders to calculate composite priority rankings for public works in the active state.</p>
+          </div>
+          
+          <div class="weights-grid">
+            <div class="weight-control-card">
+              <div class="weight-meta">
+                <span class="weight-title" data-i18n="w_demand">Citizen Demand Weight</span>
+                <span class="weight-val" id="mp-w-demand-label">52%</span>
+              </div>
+              <div class="slider-wrapper">
+                <input type="range" id="mp-w-demand" min="0" max="100" value="52">
+              </div>
+              <p class="slider-desc" data-i18n="desc_w_demand">Prioritize based on volume and urgency of incoming submissions.</p>
+            </div>
+            
+            <div class="weight-control-card">
+              <div class="weight-meta">
+                <span class="weight-title" data-i18n="w_gap">Infrastructure Gap Weight</span>
+                <span class="weight-val" id="mp-w-gap-label">39%</span>
+              </div>
+              <div class="slider-wrapper">
+                <input type="range" id="mp-w-gap" min="0" max="100" value="39">
+              </div>
+              <p class="slider-desc" data-i18n="desc_w_gap">Prioritize projects in wards with poor literacy, high distance to school, or low water index.</p>
+            </div>
+            
+            <div class="weight-control-card">
+              <div class="weight-meta">
+                <span class="weight-title" data-i18n="w_impact">Population Impact Weight</span>
+                <span class="weight-val" id="mp-w-impact-label">43%</span>
+              </div>
+              <div class="slider-wrapper">
+                <input type="range" id="mp-w-impact" min="0" max="100" value="43">
+              </div>
+              <p class="slider-desc" data-i18n="desc_w_impact">Prioritize projects that benefit the largest absolute population density.</p>
+            </div>
+            
+            <div class="weight-control-card">
+              <div class="weight-meta">
+                <span class="weight-title" data-i18n="w_cost">Cost / Budget Factor</span>
+                <span class="weight-val" id="mp-w-cost-label">28%</span>
+              </div>
+              <div class="slider-wrapper">
+                <input type="range" id="mp-w-cost" min="0" max="100" value="28">
+              </div>
+              <p class="slider-desc" data-i18n="desc_w_cost">Subtracted weight. Lower cost projects score higher to yield better cost efficiency.</p>
+            </div>
+          </div>
+          <div style="display:flex; justify-content: flex-end;">
+            <button class="btn-reset" id="btn-reset-mp-sliders"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_reset_weights">Reset Weights</span></button>
+          </div>
+        </div>
+
+        <!-- Table of priorities -->
+        <div class="glass-panel">
+          <div class="table-panel-header">
+            <h3 data-i18n="priority_ranks_heading">Recommended Projects & Infrastructure Priority Rankings</h3>
+            <button class="btn-secondary" id="btn-generate-executive-report">
+              <i class="fa-solid fa-file-pdf"></i> <span data-i18n="btn_report">Generate Executive MP Report</span>
+            </button>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 80px;" data-i18n="th_rank">Rank</th>
+                  <th data-i18n="th_project">Project Proposal</th>
+                  <th data-i18n="th_location">Target Ward</th>
+                  <th data-i18n="th_theme">Theme</th>
+                  <th data-i18n="th_demand">Citizen Demand</th>
+                  <th data-i18n="th_gap">Infra Gap</th>
+                  <th data-i18n="th_cost">Budget Cost</th>
+                  <th data-i18n="th_priority">Priority Score</th>
+                </tr>
+              </thead>
+              <tbody id="mp-priority-table-body">
+                <!-- dynamic projects loaded by state selection -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== -->
+      <!-- VIEW: Shared System Architecture -->
+      <!-- ============================================== -->
+      <section id="shared-architecture" class="tab-view">
+        <div class="page-header">
+          <div class="header-title">
+            <h2 data-i18n="arch_title">System Architecture</h2>
+            <p data-i18n="arch_desc">End-to-end design configurations and pipeline structure</p>
+          </div>
+        </div>
+
+        <div class="glass-panel">
+          <div class="panel-header">
+            <h3 data-i18n="arch_heading">Multilingual Feedback Parsing System Diagram</h3>
+          </div>
+
+          <div class="architecture-grid">
+            <div class="arch-diagram-wrapper">
+              <svg viewBox="0 0 800 320" width="100%" height="320">
+                <rect x="10" y="10" width="780" height="300" rx="10" fill="rgba(6,9,14,0.3)" stroke="rgba(255,255,255,0.06)" />
+                
+                <rect x="30" y="110" width="110" height="80" rx="8" fill="rgba(99, 102, 241, 0.1)" stroke="rgba(99, 102, 241, 0.3)" />
+                <text x="85" y="145" fill="#fff" font-size="11" font-weight="600" text-anchor="middle">Citizen Channels</text>
+                <text x="85" y="165" fill="var(--text-muted)" font-size="9" text-anchor="middle">Voice / Web / WhatsApp</text>
+                
+                <rect x="180" y="110" width="110" height="80" rx="8" fill="rgba(14, 165, 233, 0.1)" stroke="rgba(14, 165, 233, 0.3)" />
+                <text x="235" y="145" fill="#fff" font-size="11" font-weight="600" text-anchor="middle">Ingestion Queue</text>
+                <text x="235" y="165" fill="var(--text-muted)" font-size="9" text-anchor="middle">API Gateway + S3</text>
+                
+                <rect x="330" y="50" width="140" height="200" rx="8" fill="rgba(168, 85, 247, 0.1)" stroke="rgba(168, 85, 247, 0.3)" />
+                <text x="400" y="80" fill="#fff" font-size="12" font-weight="600" text-anchor="middle">AI Multilingual Engine</text>
+                <rect x="345" y="105" width="110" height="24" rx="4" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.05)" />
+                <text x="400" y="121" fill="#c084fc" font-size="9" font-weight="500" text-anchor="middle">Whisper v3 (STT)</text>
+                <rect x="345" y="135" width="110" height="24" rx="4" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.05)" />
+                <text x="400" y="151" fill="#38bdf8" font-size="9" font-weight="500" text-anchor="middle">Bhashini (Translation)</text>
+                <rect x="345" y="165" width="110" height="24" rx="4" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.05)" />
+                <text x="400" y="181" fill="#34d399" font-size="9" font-weight="500" text-anchor="middle">LLM Classification</text>
+                <rect x="345" y="195" width="110" height="24" rx="4" fill="rgba(0,0,0,0.3)" stroke="rgba(255,255,255,0.05)" />
+                <text x="400" y="211" fill="#fb7185" font-size="9" font-weight="500" text-anchor="middle">ResNet-50 (OCR/Vision)</text>
+
+                <rect x="510" y="110" width="110" height="80" rx="8" fill="rgba(16, 185, 129, 0.1)" stroke="rgba(16, 185, 129, 0.3)" />
+                <text x="565" y="145" fill="#fff" font-size="11" font-weight="600" text-anchor="middle">PostGIS Database</text>
+                <text x="565" y="165" fill="var(--text-muted)" font-size="9" text-anchor="middle">States Shapefiles</text>
+
+                <rect x="660" y="110" width="110" height="80" rx="8" fill="rgba(234, 179, 8, 0.1)" stroke="rgba(234, 179, 8, 0.3)" />
+                <text x="715" y="140" fill="#fff" font-size="11" font-weight="600" text-anchor="middle">Prioritization</text>
+                <text x="715" y="155" fill="#fff" font-size="11" font-weight="600" text-anchor="middle">Engine</text>
+                <text x="715" y="175" fill="var(--text-muted)" font-size="9" text-anchor="middle">Dynamic Sliders</text>
+
+                <path d="M 140 150 L 180 150" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" />
+                <path d="M 290 150 L 330 150" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" />
+                <path d="M 470 150 L 510 150" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" />
+                <path d="M 620 150 L 660 150" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" />
+              </svg>
+            </div>
+
+            <div class="arch-card-grid">
+              <div class="arch-card">
+                <h4 data-i18n="arch_c1_title"><i class="fa-solid fa-microphone-lines"></i> Speech Processing & OCR</h4>
+                <p data-i18n="arch_c1_desc">Integrates OpenAI Whisper v3 API for transcribing citizen voice files. Infrastructure photo uploads are analyzed via custom Vision model pipelines detecting anomalies like blockages, potholes, and leakages.</p>
+              </div>
+              <div class="arch-card">
+                <h4 data-i18n="arch_c2_title"><i class="fa-solid fa-language"></i> Translation & NLU</h4>
+                <p data-i18n="arch_c2_desc">Supports regional Indian languages using the Bhashini API, converting speech or text suggestions directly into English. Extracted text is processed via Llama 3 models for Named Entity Recognition (NER).</p>
+              </div>
+              <div class="arch-card">
+                <h4 data-i18n="arch_c3_title"><i class="fa-solid fa-earth-americas"></i> Geospatial Analytics (PostGIS)</h4>
+                <p data-i18n="arch_c3_desc">Locations parsed from text or attached GPS points are correlated with state boundary shapefiles via PostGIS spatial overlay mapping, ensuring every submission is correctly mapped to a state constituency.</p>
+              </div>
+              <div class="arch-card">
+                <h4 data-i18n="arch_c4_title"><i class="fa-solid fa-calculator"></i> Prioritization Mechanics</h4>
+                <p data-i18n="arch_c4_desc">Calculates project urgency scores by joining citizen feedback density with factual baseline data (literacy rates, school enrollment, water shortage index) and budget values dynamically based on MP weights.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Simulated Hardware Permission Dialog Modals -->
+  <!-- 1. Microphone Permission Modal -->
+  <div class="modal-overlay" id="mic-permission-prompt" style="z-index: 2000;">
+    <div class="permission-prompt-card glass-panel">
+      <div class="permission-icon mic"><i class="fa-solid fa-microphone"></i></div>
+      <h3 data-i18n="perm_mic_title">Allow Microphone Access?</h3>
+      <p data-i18n="perm_mic_desc">People's Priority needs microphone access to record voice requests and convert them to text.</p>
+      <div class="permission-actions">
+        <button class="btn-secondary" id="btn-mic-deny" data-i18n="btn_deny">Block</button>
+        <button class="btn-primary" id="btn-mic-allow" style="width:auto;" data-i18n="btn_allow">Allow Access</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Camera/Files Permission Modal -->
+  <div class="modal-overlay" id="cam-permission-prompt" style="z-index: 2000;">
+    <div class="permission-prompt-card glass-panel">
+      <div class="permission-icon cam"><i class="fa-solid fa-camera"></i></div>
+      <h3 data-i18n="perm_cam_title">Allow Camera & File Access?</h3>
+      <p data-i18n="perm_cam_desc">Allow access to take a photo of the infrastructure issue or upload images from your local files.</p>
+      <div class="permission-actions">
+        <button class="btn-secondary" id="btn-cam-deny" data-i18n="btn_deny">Block</button>
+        <button class="btn-primary" id="btn-cam-allow" style="width:auto;" data-i18n="btn_allow">Allow Access</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Location/GPS Permission Modal -->
+  <div class="modal-overlay" id="location-permission-prompt" style="z-index: 2000;">
+    <div class="permission-prompt-card glass-panel">
+      <div class="permission-icon loc"><i class="fa-solid fa-location-dot"></i></div>
+      <h3 data-i18n="perm_loc_title">Allow Location Tracking?</h3>
+      <p data-i18n="perm_loc_desc">Share your exact location to automatically sort your complaint state-wise for your respective MP dashboard.</p>
+      <div class="permission-actions">
+        <button class="btn-secondary" id="btn-loc-deny" data-i18n="btn_deny">Block</button>
+        <button class="btn-primary" id="btn-loc-allow" style="width:auto;" data-i18n="btn_allow">Allow Access</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Executive MP Report Modal -->
+  <div class="modal-overlay" id="report-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 data-i18n="mp_report_header">Generated Executive MP Report</h3>
+        <button class="modal-close" id="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="report-document" id="report-doc">
+        <!-- Rendered Report Content -->
+      </div>
+      <div style="display:flex; justify-content: flex-end; margin-top:20px; gap:12px;">
+        <button class="btn-secondary" id="btn-print-report"><i class="fa-solid fa-print"></i> <span data-i18n="btn_print">Print / Save PDF</span></button>
+        <button class="btn-primary" style="width:auto;" id="btn-download-raw"><span data-i18n="btn_export">Export Data</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>

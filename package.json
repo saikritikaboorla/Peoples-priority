@@ -1,0 +1,14 @@
+{
+  "name": "peoples-priority",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "infra": "docker compose up -d",
+    "setup": "npm run setup:backend && npm run setup:frontend",
+    "setup:backend": "cd backend && npm install && npx prisma db push && npm run seed",
+    "setup:frontend": "cd frontend && npm install",
+    "dev:backend": "cd backend && npm run start:dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "echo Run 'npm run dev:backend' and 'npm run dev:frontend' in separate terminals"
+  }
+}
