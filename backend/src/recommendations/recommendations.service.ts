@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ThemeCategory } from '@prisma/client';
+import { ProjectRecommendation, ThemeCategory } from '@prisma/client';
 
 interface ScoreInputs {
   demandScore: number;
@@ -64,7 +64,7 @@ export class RecommendationsService {
     }
 
     const maxCount = Math.max(...Array.from(themeCounts.values()).map((v) => v.count), 1);
-    const recommendations = [];
+    const recommendations: ProjectRecommendation[] = [];
 
     const projectTemplates: Record<ThemeCategory, { title: string; description: string; baseCost: number }> = {
       ROAD_INFRASTRUCTURE: { title: 'Road Repair & Upgrade', description: 'Repair potholes and upgrade road infrastructure in high-demand areas', baseCost: 60 },

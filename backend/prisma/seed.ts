@@ -3,6 +3,15 @@ import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
+interface SeedRecommendation {
+  cat: string;
+  t: { title: string; desc: string; cost: number };
+  count: number;
+  demand: number;
+  impact: number;
+  priority: number;
+}
+
 const SAMPLE_FEEDBACK = [
   { content: 'Our village road has potholes everywhere. Need urgent repair.', theme: 'Road Infrastructure', category: ThemeCategory.ROAD_INFRASTRUCTURE, lat: 28.6139, lng: 77.209, district: 'Central Delhi', sentiment: Sentiment.URGENT },
   { content: 'No proper drinking water supply for 3 months. Pipeline is broken.', theme: 'Water Supply', category: ThemeCategory.WATER_SUPPLY, lat: 28.7041, lng: 77.1025, district: 'West Delhi', sentiment: Sentiment.URGENT },
@@ -167,7 +176,7 @@ async function main() {
     AGRICULTURE: { title: 'Irrigation Canal Repair', desc: 'Repair irrigation canals', cost: 50 },
     OTHER: { title: 'General Development Project', desc: 'Miscellaneous requests', cost: 50 },
   };
-  const recs = [];
+  const recs: SeedRecommendation[] = [];
   for (const [cat, count] of themeCounts) {
     const t = templates[cat] || templates.OTHER;
     const demand = Math.min(100, (count / maxCount) * 100);

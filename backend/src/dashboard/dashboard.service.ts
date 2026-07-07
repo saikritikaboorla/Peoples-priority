@@ -88,7 +88,7 @@ export class DashboardService {
     const topDistrict = districts[0];
     const topRec = recommendations[0];
 
-    const parts = [];
+    const parts: string[] = [];
     if (topTheme) {
       parts.push(`The most reported issue is ${topTheme.name} with ${topTheme.count} submissions.`);
     }

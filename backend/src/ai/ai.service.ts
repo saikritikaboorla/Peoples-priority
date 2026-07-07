@@ -62,7 +62,11 @@ export class AiService {
 
   classifyTheme(text: string): { name: string; category: ThemeCategory } {
     const lower = text.toLowerCase();
-    let bestMatch = { name: 'Other', category: ThemeCategory.OTHER, score: 0 };
+    let bestMatch: { name: string; category: ThemeCategory; score: number } = {
+      name: 'Other',
+      category: ThemeCategory.OTHER,
+      score: 0,
+    };
 
     for (const [name, config] of Object.entries(THEME_KEYWORDS)) {
       let score = 0;
