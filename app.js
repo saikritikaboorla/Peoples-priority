@@ -2,7 +2,8 @@
 let currentUserRole = "citizen"; // citizen or mp
 let currentLanguage = "en"; // en, hi, ta, te, kn, bn
 let activeStateName = "Tamil Nadu";
-let activeConstituency = "Tamil Nadu";
+let activeConstituency = "Chennai Central";
+let activeConstituencyId = "tn-4";
 let mpActiveLayer = "literacy";
 let isRecording = false;
 let recordTimerInterval = null;
@@ -293,8 +294,19 @@ const translations = {
     role_mp_title: "MP Dashboard",
     role_mp_desc: "Analyze needs & rank projects",
     login_lang_lbl: "Choose Language",
-    login_constituency_lbl: "Your Constituency",
-    login_constituency_hint: "Select the area you represent. Dashboard will show only your constituency issues.",
+    login_constituency_lbl: "Lok Sabha Constituency",
+    login_constituency_hint: "Select your state first, then choose your constituency. Dashboard shows only your constituency issues.",
+    login_state_lbl: "State / Union Territory",
+    login_citizen_loc_lbl: "Your Location",
+    login_detect_loc_btn: "Allow Location & Detect Constituency",
+    login_loc_hint: "We will detect your state and Lok Sabha constituency automatically",
+    login_loc_found: "Constituency detected",
+    lbl_submission_constituency: "Lok Sabha Constituency",
+    lbl_demo_scenarios: "Demo Scenarios for Judges",
+    lbl_demo_hint: "Click a sample case to auto-fill state, constituency, and grievance text",
+    lbl_constituency_label: "Constituency:",
+    map_heading: "Constituency Geographic View",
+    map_source_note: "Map boundary: DataMeet Parliamentary Constituencies 2019 · Sample demand points are synthetic for demo",
     login_btn: "Enter Portal",
     side_subtitle: "AI Decision Support",
     nav_citizen_submit: "Submit Suggestions",
@@ -338,7 +350,7 @@ const translations = {
     meta_trans: "Translation:",
     meta_theme: "Theme Tag:",
     meta_urgency: "Severity:",
-    meta_loc: "Routed State:",
+    meta_loc: "Routed Constituency:",
     cit_history_title: "My Submitted Suggestions",
     cit_history_desc: "Track responses and prioritizing stats for your requests",
     th_date: "Date Submitted",
@@ -353,7 +365,7 @@ const translations = {
     kpi_budget: "State Fund Limit",
     kpi_pill_action: "Requires Action",
     kpi_pill_whisper: "Bhashini LLM",
-    map_heading: "India State Selection Map",
+    map_heading: "Constituency Geographic View",
     map_btn_demands: "Citizen Demands",
     map_btn_gap: "Infrastructure Gap",
     map_btn_lit: "Literacy Index",
@@ -1153,17 +1165,18 @@ let userSubmissions = [
 
 // Initialization
 document.addEventListener("DOMContentLoaded", () => {
+  initConstituencyDropdowns();
+  renderDemoScenarioButtons();
   setupLoginFlow();
   setupRoleSelector();
   setupPostLoginLangSelector();
   setupNavigation();
-  setupStateMap();
+  setupConstituencyMap();
   setupHardwarePermissions();
   setupCitizenPortalActions();
   setupCameraCapture();
   setupRecommendationSliders();
   setupReportModal();
-  setupStateDropdownSelector();
   
   // Set date
   const dateEl = document.getElementById("live-date");
@@ -1173,22 +1186,66 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// Initialize all state/constituency dropdowns from official dataset
+function initConstituencyDropdowns() {
+  const portalState = document.getElementById("portal-state-select");
+  const portalConst = document.getElementById("portal-constituency-select");
+  const loginMpState = document.getElementById("login-mp-state");
+  const loginConst = document.getElementById("login-constituency");
+
+  populateStateSelect(portalState, "Tamil Nadu");
+  populateConstituencySelect(portalConst, "Tamil Nadu", "tn-4");
+  populateStateSelect(loginMpState, "Delhi");
+  populateConstituencySelect(loginConst, "Delhi", "dl-1");
+
+  if (portalState) {
+    portalState.addEventListener("change", (e) => {
+      populateConstituencySelect(portalConst, e.target.value, "");
+    });
+  }
+  if (loginMpState) {
+    loginMpState.addEventListener("change", (e) => {
+      populateConstituencySelect(loginConst, e.target.value, "");
+    });
+  }
+}
+
 // 1. Login & Role Flow
 function setupLoginFlow() {
   const btnLogin = document.getElementById("btn-login");
   const loginScreen = document.getElementById("login-screen");
   const appWrapper = document.getElementById("app-wrapper");
   const loginLang = document.getElementById("login-language");
+  const btnLoginLoc = document.getElementById("btn-login-detect-location");
 
-  btnLogin.addEventListener("click", () => {
+  if (btnLoginLoc) {
+    btnLoginLoc.addEventListener("click", () => {
+      document.getElementById("location-permission-prompt").style.display = "flex";
+    });
+  }
+
+  btnLogin.addEventListener("click", async () => {
     const selectedRoleCard = document.querySelector(".role-card.active");
     currentUserRole = selectedRoleCard ? selectedRoleCard.getAttribute("data-role") : "citizen";
     currentLanguage = loginLang.value;
 
     if (currentUserRole === "mp") {
+      const mpState = document.getElementById("login-mp-state").value;
       const constituencySelect = document.getElementById("login-constituency");
-      activeConstituency = constituencySelect ? constituencySelect.value : "Tamil Nadu";
-      activeStateName = activeConstituency;
+      activeConstituencyId = constituencySelect ? constituencySelect.value : "";
+      if (!activeConstituencyId) {
+        alert("Please select your state and Lok Sabha constituency before entering the MP dashboard.");
+        return;
+      }
+      const cObj = getConstituencyById(activeConstituencyId);
+      activeConstituency = cObj ? cObj.name : "Constituency";
+      activeStateName = cObj ? cObj.state : mpState;
+    } else {
+      const portalConst = document.getElementById("portal-constituency-select");
+      activeConstituencyId = portalConst && portalConst.value ? portalConst.value : "tn-4";
+      const cObj = getConstituencyById(activeConstituencyId);
+      activeConstituency = cObj ? cObj.name : "Constituency";
+      activeStateName = cObj ? cObj.state : document.getElementById("portal-state-select").value;
     }
 
     loginScreen.style.display = "none";
@@ -1197,7 +1254,7 @@ function setupLoginFlow() {
     document.getElementById("post-language-selector").value = currentLanguage;
     configureWorkspaceForRole();
     translateApp(currentLanguage);
-    updateDashboardForState(activeStateName);
+    updateDashboardForConstituency(activeConstituencyId);
     updateRecommendationsTable();
   });
 
@@ -1215,16 +1272,18 @@ function setupLoginFlow() {
 
 function setupRoleSelector() {
   const roleCards = document.querySelectorAll(".role-card");
+  const mpStateGroup = document.getElementById("mp-state-group");
   const constituencyGroup = document.getElementById("mp-constituency-group");
+  const citizenLocGroup = document.getElementById("citizen-location-group");
 
   roleCards.forEach(card => {
     card.addEventListener("click", () => {
       roleCards.forEach(c => c.classList.remove("active"));
       card.classList.add("active");
       const role = card.getAttribute("data-role");
-      if (constituencyGroup) {
-        constituencyGroup.style.display = role === "mp" ? "flex" : "none";
-      }
+      if (mpStateGroup) mpStateGroup.style.display = role === "mp" ? "flex" : "none";
+      if (constituencyGroup) constituencyGroup.style.display = role === "mp" ? "flex" : "none";
+      if (citizenLocGroup) citizenLocGroup.style.display = role === "citizen" ? "flex" : "none";
     });
   });
 }
@@ -1239,7 +1298,7 @@ function setupPostLoginLangSelector() {
     document.getElementById("login-language").value = currentLanguage;
     
     // Re-render components with translated dynamic data
-    updateDashboardForState(activeStateName);
+    updateDashboardForConstituency(activeConstituencyId);
     updateRecommendationsTable();
     renderCitizenHistory();
   });
@@ -1267,6 +1326,12 @@ function configureWorkspaceForRole() {
     
     // Set active tab to Citizen portal
     switchActiveTab("citizen-portal");
+    // Prompt citizen to allow location on first entry
+    setTimeout(() => {
+      if (!permissions.location) {
+        document.getElementById("location-permission-prompt").style.display = "flex";
+      }
+    }, 400);
   }
 
   // Adjust sidebar navigation tabs visibility
@@ -1284,29 +1349,14 @@ function configureWorkspaceForRole() {
 }
 
 function lockMpConstituencyView() {
-  activeStateName = activeConstituency;
-  const selector = document.getElementById("mp-state-dropdown-selector");
-  if (selector) {
-    selector.innerHTML = `<option value="${activeConstituency}">${activeConstituency}</option>`;
-    selector.value = activeConstituency;
-    selector.disabled = true;
+  const cObj = getConstituencyById(activeConstituencyId);
+  if (cObj) {
+    activeStateName = cObj.state;
+    activeConstituency = cObj.name;
   }
-  const statePolys = document.querySelectorAll(".map-ward-poly");
-  statePolys.forEach(p => {
-    p.style.pointerEvents = "none";
-    p.style.opacity = "0.4";
-  });
-  let polyId = "state-tn";
-  if (activeConstituency === "Tamil Nadu") polyId = "state-tn";
-  else if (activeConstituency === "Karnataka") polyId = "state-kn";
-  else if (activeConstituency === "Maharashtra") polyId = "state-mh";
-  else if (activeConstituency === "Uttar Pradesh") polyId = "state-up";
-  else if (activeConstituency === "West Bengal") polyId = "state-wb";
-  statePolys.forEach(p => p.classList.remove("active"));
-  const poly = document.getElementById(polyId);
-  if (poly) {
-    poly.classList.add("active");
-    poly.style.opacity = "1";
+  const labelEl = document.getElementById("mp-constituency-label");
+  if (labelEl) {
+    labelEl.innerText = activeConstituency + " · " + activeStateName;
   }
 }
 
@@ -1369,89 +1419,46 @@ function setupNavigation() {
   });
 }
 
-// 4. India Map & State Selection Dashboard
-function setupStateMap() {
-  const statePolys = document.querySelectorAll(".map-ward-poly");
+// 4. Constituency Map Dashboard (Leaflet + public boundary data)
+function setupConstituencyMap() {
   const layerButtons = document.querySelectorAll(".map-control-btn[data-mp-layer]");
-
-  statePolys.forEach(poly => {
-    poly.addEventListener("click", () => {
-      statePolys.forEach(p => p.classList.remove("active"));
-      poly.classList.add("active");
-
-      const polyId = poly.getAttribute("id");
-      let targetState = "Tamil Nadu";
-      if (polyId === "state-tn") targetState = "Tamil Nadu";
-      else if (polyId === "state-kn") targetState = "Karnataka";
-      else if (polyId === "state-mh") targetState = "Maharashtra";
-      else if (polyId === "state-up") targetState = "Uttar Pradesh";
-      else if (polyId === "state-wb") targetState = "West Bengal";
-
-      activeStateName = targetState;
-      document.getElementById("mp-state-dropdown-selector").value = targetState;
-      updateDashboardForState(targetState);
-      updateRecommendationsTable();
-    });
-  });
 
   layerButtons.forEach(btn => {
     btn.addEventListener("click", () => {
       layerButtons.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-
-      const layer = btn.getAttribute("data-mp-layer");
-      mpActiveLayer = layer;
-      recolorIndiaStates();
-      updateIndiaMapLegend();
+      mpActiveLayer = btn.getAttribute("data-mp-layer");
+      renderConstituencyMap(activeConstituencyId, mpActiveLayer);
+      updateConstituencyMapLegend();
     });
   });
 }
 
-function setupStateDropdownSelector() {
-  const selector = document.getElementById("mp-state-dropdown-selector");
-  selector.addEventListener("change", (e) => {
-    const val = e.target.value;
-    activeStateName = val;
-    
-    // Update map polygon highlights
-    const statePolys = document.querySelectorAll(".map-ward-poly");
-    statePolys.forEach(p => p.classList.remove("active"));
-    
-    let polyId = "state-tn";
-    if (val === "Tamil Nadu") polyId = "state-tn";
-    else if (val === "Karnataka") polyId = "state-kn";
-    else if (val === "Maharashtra") polyId = "state-mh";
-    else if (val === "Uttar Pradesh") polyId = "state-up";
-    else if (val === "West Bengal") polyId = "state-wb";
-    
-    const poly = document.getElementById(polyId);
-    if (poly) poly.classList.add("active");
-
-    updateDashboardForState(val);
-    updateRecommendationsTable();
-  });
-}
-
-function updateDashboardForState(stateName) {
-  const data = stateData[stateName];
+function updateDashboardForConstituency(constituencyId) {
+  const data = getConstituencyData(constituencyId) || getConstituencyData("tn-4");
   if (!data) return;
 
-  // Title
-  document.getElementById("mp-state-title").innerText = stateName;
-  document.getElementById("mp-state-region").innerText = data.region;
+  activeConstituencyId = constituencyId;
+  activeStateName = data.stateName;
+  activeConstituency = data.constituencyName;
 
-  // KPI Values
+  document.getElementById("mp-state-title").innerText = data.stateName;
+  document.getElementById("mp-state-region").innerText = data.region;
+  const labelEl = document.getElementById("mp-constituency-label");
+  if (labelEl) {
+    const cMeta = getConstituencyById(constituencyId);
+    labelEl.innerText = data.constituencyName + " · PC " + (cMeta ? cMeta.pcNo : "—");
+  }
+
   document.getElementById("kpi-val-submissions").innerText = data.submissions;
   document.getElementById("kpi-val-urgent").innerText = data.urgent;
   document.getElementById("kpi-val-budget").innerText = data.budget;
 
-  // Stats List
   document.getElementById("mp-state-density").innerText = data.density;
   document.getElementById("mp-state-literacy").innerText = data.literacy;
   document.getElementById("mp-state-enrollment").innerText = data.enrollment;
   document.getElementById("mp-state-water").innerText = data.water;
 
-  // Render ranked demands chart (essential themes first, then by frequency)
   const container = document.getElementById("mp-state-demands-container");
   container.innerHTML = "";
 
@@ -1485,10 +1492,9 @@ function updateDashboardForState(stateName) {
     container.appendChild(row);
   });
 
-  // Recent Feedback Feed
   const feedBox = document.getElementById("mp-state-recent-feedback-feed");
   const fb = data.recentFeedback;
-  
+
   let channelClass = "web";
   let channelIcon = '<i class="fa-solid fa-globe"></i>';
   if (fb.channel === "WhatsApp") {
@@ -1515,47 +1521,11 @@ function updateDashboardForState(stateName) {
     </div>
   `;
 
-  recolorIndiaStates();
-  updateIndiaMapLegend();
+  renderConstituencyMap(constituencyId, mpActiveLayer);
+  updateConstituencyMapLegend();
 }
 
-function recolorIndiaStates() {
-  const polygons = document.querySelectorAll(".map-ward-poly");
-  polygons.forEach(poly => {
-    const polyId = poly.getAttribute("id");
-    let stateName = "Tamil Nadu";
-    if (polyId === "state-tn") stateName = "Tamil Nadu";
-    else if (polyId === "state-kn") stateName = "Karnataka";
-    else if (polyId === "state-mh") stateName = "Maharashtra";
-    else if (polyId === "state-up") stateName = "Uttar Pradesh";
-    else if (polyId === "state-wb") stateName = "West Bengal";
-
-    const data = stateData[stateName];
-    if (!data) return;
-
-    let fillHex = "";
-    if (mpActiveLayer === "demands") {
-      const density = Math.min((data.submissions / 700) * 100, 100);
-      fillHex = `rgba(168, 85, 247, ${0.2 + (density / 100) * 0.7})`;
-    } else if (mpActiveLayer === "gap") {
-      const deficiency = (100 - data.waterVal) + (100 - data.enrollmentVal);
-      const intensity = Math.min((deficiency / 100) * 100, 100);
-      fillHex = `rgba(239, 68, 68, ${0.2 + (intensity / 100) * 0.7})`;
-    } else if (mpActiveLayer === "literacy") {
-      const lit = data.literacyVal;
-      if (lit > 80) {
-        fillHex = "rgba(16, 185, 129, 0.65)";
-      } else if (lit > 75) {
-        fillHex = "rgba(234, 179, 8, 0.55)";
-      } else {
-        fillHex = "rgba(239, 68, 68, 0.55)";
-      }
-    }
-    poly.style.fill = fillHex;
-  });
-}
-
-function updateIndiaMapLegend() {
+function updateConstituencyMapLegend() {
   const title = document.getElementById("mp-legend-title");
   const gradient = document.getElementById("mp-legend-gradient");
   const minText = document.getElementById("mp-legend-min");
@@ -1610,7 +1580,12 @@ function setupHardwarePermissions() {
   document.getElementById("btn-loc-allow").addEventListener("click", () => {
     permissions.location = true;
     document.getElementById("location-permission-prompt").style.display = "none";
-    triggerLocationGpsLock();
+    const loginVisible = document.getElementById("login-screen").style.display !== "none";
+    if (loginVisible) {
+      runLoginLocationDetection();
+    } else {
+      triggerLocationGpsLock();
+    }
   });
   document.getElementById("btn-loc-deny").addEventListener("click", () => {
     permissions.location = false;
@@ -1705,9 +1680,40 @@ function setupCameraCapture() {
   if (btnCancel) btnCancel.addEventListener("click", closeCameraModal);
 }
 
+function runLoginLocationDetection() {
+  const statusEl = document.getElementById("login-location-status");
+  const transMap = translations[currentLanguage] || translations.en;
+  if (statusEl) {
+    statusEl.innerText = transMap.gps_loading || "Finding your location...";
+    statusEl.style.color = "#818cf8";
+  }
+  detectLocationAndConstituency()
+    .then(function(result) {
+      populateStateSelect(document.getElementById("portal-state-select"), result.state);
+      populateConstituencySelect(document.getElementById("portal-constituency-select"), result.state, result.constituency ? result.constituency.id : "");
+      if (result.constituency) {
+        activeConstituencyId = result.constituency.id;
+        activeConstituency = result.constituency.name;
+        activeStateName = result.state;
+      }
+      if (statusEl) {
+        const cName = result.constituency ? result.constituency.name : result.state;
+        statusEl.innerText = (transMap.login_loc_found || "Constituency detected") + ": " + cName + " · " + result.placeLabel;
+        statusEl.style.color = "#10b981";
+      }
+    })
+    .catch(function() {
+      if (statusEl) {
+        statusEl.innerText = transMap.gps_error || "Could not find location. Select state and constituency manually.";
+        statusEl.style.color = "#f87171";
+      }
+    });
+}
+
 function triggerLocationGpsLock() {
   const label = document.getElementById("gps-status-label");
   const dropState = document.getElementById("portal-state-select");
+  const dropConst = document.getElementById("portal-constituency-select");
   const transMap = translations[currentLanguage] || translations.en;
   const btnGps = document.getElementById("btn-enable-gps");
 
@@ -1715,67 +1721,22 @@ function triggerLocationGpsLock() {
   label.style.color = "#818cf8";
   if (btnGps) btnGps.disabled = true;
 
-  if (!navigator.geolocation) {
-    label.innerText = transMap.gps_error || "Geolocation not supported.";
-    label.style.color = "#f87171";
-    if (btnGps) btnGps.disabled = false;
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    async (position) => {
-      const { latitude, longitude } = position.coords;
-      detectedLocation = { latitude, longitude };
-
-      try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
-          { headers: { "Accept-Language": "en" } }
-        );
-        const data = await res.json();
-        const address = data.address || {};
-        const stateName = address.state || address.region || "";
-        const city = address.city || address.town || address.village || address.county || "Your area";
-
-        const matchedState = matchStateFromName(stateName);
-        if (matchedState && dropState) {
-          dropState.value = matchedState;
-        }
-
-        const gpsText = `${city} (${latitude.toFixed(4)}°, ${longitude.toFixed(4)}°)`;
-        label.innerText = `${transMap.gps_enabled || "Location found"}: ${gpsText}`;
-        label.style.color = "#10b981";
-        label.style.fontWeight = "600";
-      } catch {
-        label.innerText = `${transMap.gps_enabled || "Location found"} (${latitude.toFixed(4)}°, ${longitude.toFixed(4)}°)`;
-        label.style.color = "#10b981";
-      }
+  detectLocationAndConstituency()
+    .then(function(result) {
+      detectedLocation = { latitude: result.latitude, longitude: result.longitude };
+      if (dropState) dropState.value = result.state;
+      populateConstituencySelect(dropConst, result.state, result.constituency ? result.constituency.id : "");
+      const cName = result.constituency ? result.constituency.name + ", " + result.state : result.state;
+      label.innerText = (transMap.gps_enabled || "Location found") + ": " + cName + " · " + result.placeLabel;
+      label.style.color = "#10b981";
+      label.style.fontWeight = "600";
       if (btnGps) btnGps.disabled = false;
-    },
-    () => {
+    })
+    .catch(function() {
       label.innerText = transMap.gps_error || "Could not find location. Please select your state below.";
       label.style.color = "#f87171";
       if (btnGps) btnGps.disabled = false;
-    },
-    { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
-  );
-}
-
-function matchStateFromName(name) {
-  if (!name) return null;
-  const lower = name.toLowerCase();
-  const states = ["Tamil Nadu", "Karnataka", "Maharashtra", "Uttar Pradesh", "West Bengal"];
-  for (const state of states) {
-    if (lower.includes(state.toLowerCase()) || state.toLowerCase().includes(lower)) {
-      return state;
-    }
-  }
-  if (lower.includes("tamil") || lower.includes("chennai")) return "Tamil Nadu";
-  if (lower.includes("karnataka") || lower.includes("bengaluru") || lower.includes("bangalore")) return "Karnataka";
-  if (lower.includes("maharashtra") || lower.includes("mumbai")) return "Maharashtra";
-  if (lower.includes("uttar") || lower.includes("lucknow")) return "Uttar Pradesh";
-  if (lower.includes("bengal") || lower.includes("kolkata")) return "West Bengal";
-  return null;
+    });
 }
 
 // 6. Citizen Portal Actions
@@ -1816,6 +1777,7 @@ function setupCitizenPortalActions() {
   btnSubmit.addEventListener("click", () => {
     const textVal = document.getElementById("portal-feedback-text").value;
     const activeState = document.getElementById("portal-state-select").value;
+    const constId = document.getElementById("portal-constituency-select").value;
     const channel = document.getElementById("portal-channel-select").value;
 
     if (!textVal.trim() && !simulatedVoiceFile) {
@@ -1856,7 +1818,7 @@ function setupCitizenPortalActions() {
         btnSubmit.disabled = false;
         btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Feedback';
         
-        displayCitizenPipelineMetadata(textVal, activeState, channel);
+        displayCitizenPipelineMetadata(textVal, activeState, constId, channel);
       }
     }
 
@@ -1954,7 +1916,7 @@ function stopVoiceRecording(shouldTranscribe) {
   }
 }
 
-function displayCitizenPipelineMetadata(txt, stateName, channelName) {
+function displayCitizenPipelineMetadata(txt, stateName, constituencyId, channelName) {
   const metaCard = document.getElementById("portal-meta-card");
   const outOriginal = document.getElementById("portal-meta-original");
   const outTranslation = document.getElementById("portal-meta-translation");
@@ -1994,9 +1956,11 @@ function displayCitizenPipelineMetadata(txt, stateName, channelName) {
   outUrgency.style.color = "var(--urgency-high)";
   outUrgency.style.borderColor = "var(--urgency-high)";
 
+  const cObj = getConstituencyById(constituencyId);
+  const routeLabel = cObj ? cObj.name + ", " + cObj.state : stateName;
   outState.innerText = detectedLocation
-    ? `${stateName} (${detectedLocation.latitude.toFixed(2)}°, ${detectedLocation.longitude.toFixed(2)}°)`
-    : stateName;
+    ? `${routeLabel} (${detectedLocation.latitude.toFixed(2)}°, ${detectedLocation.longitude.toFixed(2)}°)`
+    : routeLabel;
 
   // Add to submitted suggestions history
   const today = new Date();
@@ -2184,8 +2148,7 @@ function updateRecommendationsTable() {
 
   const sumWeights = wDemand + wGap + wImpact + wCost || 1;
 
-  // Retrieve current active state projects
-  const activeStateObj = stateData[activeStateName];
+  const activeStateObj = getConstituencyData(activeConstituencyId);
   if (!activeStateObj) return;
 
   const calculated = activeStateObj.projects.map(proj => {
@@ -2199,7 +2162,6 @@ function updateRecommendationsTable() {
       (wCost / sumWeights) * proj.costBase
     );
 
-    // Water & healthcare always rank as high priority
     if (ESSENTIAL_THEMES.includes(proj.theme)) {
       score = Math.max(score, 80);
     }
@@ -2231,7 +2193,7 @@ function updateRecommendationsTable() {
     row.innerHTML = `
       <td class="rank-col">#${idx + 1}</td>
       <td><strong>${proj.title}</strong>${essentialBadge}</td>
-      <td>${activeStateName}</td>
+      <td>${activeConstituency}</td>
       <td><span class="badge ${proj.themeClass}">${proj.theme}</span></td>
       <td>${proj.demandBase}/100</td>
       <td>${proj.gapBase}/100</td>
@@ -2284,7 +2246,7 @@ function renderExecutiveReportContent() {
   const wCost = parseInt(document.getElementById("mp-w-cost").value);
   const sumWeights = wDemand + wGap + wImpact + wCost || 1;
 
-  const activeStateObj = stateData[activeStateName];
+  const activeStateObj = getConstituencyData(activeConstituencyId);
   const calculated = activeStateObj.projects.map(proj => {
     const stateDensity = activeStateObj.densityVal;
     const impactScore = (stateDensity / 1029) * 100;
@@ -2313,7 +2275,7 @@ function renderExecutiveReportContent() {
       <tr>
         <td style="font-weight:700;">#${idx + 1}</td>
         <td><strong>${proj.title}</strong></td>
-        <td>${activeStateName}</td>
+        <td>${activeConstituency}</td>
         <td>${proj.theme}</td>
         <td style="font-weight:600; text-align:center;">${proj.priorityScore}</td>
       </tr>

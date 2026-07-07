@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>People's Priority - AI Decision Support Platform</title>
+  <title>People's Priority — Citizen Grievance & MP Decision Support Portal</title>
   <!-- Google Fonts & FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -14,6 +15,10 @@
   <div id="login-screen" class="login-overlay">
     <div class="login-card glass-panel">
       <div class="login-header">
+        <div class="gov-emblem-strip">
+          <span class="gov-emblem-icon"><i class="fa-solid fa-landmark"></i></span>
+          <span class="gov-emblem-text">Government of India · Lok Sabha Constituency Portal</span>
+        </div>
         <div class="logo-icon">PP</div>
         <h2 data-i18n="login_title">Demo Login Dashboard</h2>
         <p data-i18n="login_subtitle">Select your portal access mode and default language</p>
@@ -40,16 +45,26 @@
           </div>
         </div>
 
+        <div class="form-group" id="citizen-location-group">
+          <label data-i18n="login_citizen_loc_lbl">Your Location</label>
+          <div class="location-box login-location-box">
+            <button type="button" class="btn-secondary btn-friendly" id="btn-login-detect-location">
+              <i class="fa-solid fa-location-crosshairs"></i>
+              <span data-i18n="login_detect_loc_btn">Allow Location & Detect Constituency</span>
+            </button>
+            <div class="location-status-text" id="login-location-status" data-i18n="login_loc_hint">We will detect your state and Lok Sabha constituency automatically</div>
+          </div>
+        </div>
+
+        <div class="form-group" id="mp-state-group" style="display: none;">
+          <label data-i18n="login_state_lbl">State / Union Territory</label>
+          <select id="login-mp-state"></select>
+        </div>
+
         <div class="form-group" id="mp-constituency-group" style="display: none;">
-          <label data-i18n="login_constituency_lbl">Your Constituency</label>
-          <select id="login-constituency">
-            <option value="Tamil Nadu">Tamil Nadu — Chennai South</option>
-            <option value="Karnataka">Karnataka — Bengaluru North</option>
-            <option value="Maharashtra">Maharashtra — Mumbai North</option>
-            <option value="Uttar Pradesh">Uttar Pradesh — Lucknow Central</option>
-            <option value="West Bengal">West Bengal — Kolkata South</option>
-          </select>
-          <p class="form-hint" data-i18n="login_constituency_hint">Select the area you represent. Dashboard will show only your constituency issues.</p>
+          <label data-i18n="login_constituency_lbl">Lok Sabha Constituency</label>
+          <select id="login-constituency"></select>
+          <p class="form-hint" data-i18n="login_constituency_hint">Select your state first, then choose your constituency. Dashboard shows only your constituency issues.</p>
         </div>
 
         <div class="form-group">
@@ -160,6 +175,7 @@
       <section id="citizen-portal" class="tab-view active">
         <div class="page-header">
           <div class="header-title">
+            <div class="portal-official-badge"><i class="fa-solid fa-shield-halved"></i> Official Citizen Grievance Portal</div>
             <h2 data-i18n="cit_portal_title">Tell Us What Your Area Needs</h2>
             <p data-i18n="cit_portal_desc">Speak, type, or take a photo — we will send it to your MP office</p>
           </div>
@@ -186,15 +202,24 @@
 
             <div class="form-group-row">
               <div class="form-group">
-                <label data-i18n="lbl_submission_state">State / Territory</label>
-                <select id="portal-state-select">
-                  <option value="Tamil Nadu">Tamil Nadu</option>
-                  <option value="Karnataka">Karnataka</option>
-                  <option value="Maharashtra">Maharashtra</option>
-                  <option value="Uttar Pradesh">Uttar Pradesh</option>
-                  <option value="West Bengal">West Bengal</option>
+                <label data-i18n="lbl_submission_state">State / Union Territory</label>
+                <select id="portal-state-select"></select>
+              </div>
+              <div class="form-group">
+                <label data-i18n="lbl_submission_constituency">Lok Sabha Constituency</label>
+                <select id="portal-constituency-select">
+                  <option value="">Select constituency</option>
                 </select>
               </div>
+            </div>
+
+            <div class="form-group">
+              <label data-i18n="lbl_demo_scenarios">Demo Scenarios for Judges</label>
+              <p class="form-hint" data-i18n="lbl_demo_hint">Click a sample case to auto-fill state, constituency, and grievance text</p>
+              <div class="demo-scenario-grid" id="demo-scenario-grid"></div>
+            </div>
+
+            <div class="form-group-row">
               <div class="form-group">
                 <label data-i18n="lbl_submission_channel">Submission Channel</label>
                 <select id="portal-channel-select">
@@ -299,7 +324,7 @@
                 <div class="meta-lbl" data-i18n="meta_urgency">Severity:</div>
                 <div class="meta-val"><span id="portal-meta-urgency" class="score-badge">None</span></div>
                 
-                <div class="meta-lbl" data-i18n="meta_loc">Routed State:</div>
+                <div class="meta-lbl" data-i18n="meta_loc">Routed Constituency:</div>
                 <div class="meta-val" id="portal-meta-state">...</div>
               </div>
             </div>
@@ -384,10 +409,10 @@
 
         <!-- Middle section: India Map + Regional demographics -->
         <div class="dashboard-grid">
-          <!-- SVG India State Map -->
+          <!-- Constituency Map (Leaflet) -->
           <div class="glass-panel map-card">
             <div class="panel-header">
-              <h3 data-i18n="map_heading">India State Selection Map</h3>
+              <h3 data-i18n="map_heading">Constituency Geographic View</h3>
               <div class="map-controls">
                 <button class="map-control-btn" data-mp-layer="demands" data-i18n="map_btn_demands">Citizen Demands</button>
                 <button class="map-control-btn" data-mp-layer="gap" data-i18n="map_btn_gap">Infrastructure Gap</button>
@@ -395,37 +420,15 @@
               </div>
             </div>
             
-            <div class="svg-map-container" style="height: 400px;">
-              <svg class="map-svg" viewBox="0 0 500 500" width="100%" height="100%">
-                <!-- Highly Stylized Interactive India Map Grid -->
-                <!-- North/West (Uttar Pradesh) -->
-                <polygon id="state-up" class="map-ward-poly" points="180,160 300,150 280,220 180,240" />
-                <text x="240" y="195" class="map-label">Uttar Pradesh</text>
-
-                <!-- East (West Bengal) -->
-                <polygon id="state-wb" class="map-ward-poly" points="300,150 380,180 350,270 280,220" />
-                <text x="325" y="220" class="map-label">West Bengal</text>
-
-                <!-- West (Maharashtra) -->
-                <polygon id="state-mh" class="map-ward-poly" points="100,260 210,250 190,320 120,330" />
-                <text x="145" y="295" class="map-label">Maharashtra</text>
-
-                <!-- South-West (Karnataka) -->
-                <polygon id="state-kn" class="map-ward-poly" points="120,330 190,320 170,410 130,390" />
-                <text x="155" y="370" class="map-label">Karnataka</text>
-
-                <!-- South (Tamil Nadu) -->
-                <polygon id="state-tn" class="map-ward-poly active" points="190,320 230,340 200,440 170,410" />
-                <text x="205" y="390" class="map-label">Tamil Nadu</text>
-              </svg>
-            </div>
+            <div id="constituency-map-container" class="leaflet-map-container"></div>
+            <div class="map-data-source-note" data-i18n="map_source_note">Map boundary: DataMeet Parliamentary Constituencies 2019 · Sample demand points are synthetic for demo</div>
 
             <div class="map-legend">
               <div class="legend-title" id="mp-legend-title">Literacy Index</div>
               <div class="legend-gradient" id="mp-legend-gradient"></div>
               <div class="legend-labels">
-                <span id="mp-legend-min">Low (<70%)</span>
-                <span id="mp-legend-max">High (>90%)</span>
+                <span id="mp-legend-min">Low (&lt;70%)</span>
+                <span id="mp-legend-max">High (&gt;90%)</span>
               </div>
             </div>
           </div>
@@ -437,16 +440,9 @@
               <span id="mp-state-region">South Zone</span>
             </div>
             
-            <!-- Quick State dropdown selector for accessibility -->
             <div class="form-group" style="margin-bottom: 10px;">
-              <label style="font-size:0.75rem;" data-i18n="lbl_select_state_quick">Quick Switch State:</label>
-              <select id="mp-state-dropdown-selector" style="padding:6px 10px; font-size:0.8rem;">
-                <option value="Tamil Nadu" selected>Tamil Nadu</option>
-                <option value="Karnataka">Karnataka</option>
-                <option value="Maharashtra">Maharashtra</option>
-                <option value="Uttar Pradesh">Uttar Pradesh</option>
-                <option value="West Bengal">West Bengal</option>
-              </select>
+              <label style="font-size:0.75rem;" data-i18n="lbl_constituency_label">Constituency:</label>
+              <div id="mp-constituency-label" class="constituency-label-pill">—</div>
             </div>
 
             <div class="stats-list">
@@ -841,6 +837,9 @@
   </div>
 
   <!-- JavaScript Application Logic -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="data/constituencies.js"></script>
+  <script src="constituency-engine.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
