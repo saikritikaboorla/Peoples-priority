@@ -22,6 +22,46 @@ const speechLangMap = {
   bn: "bn-IN"
 };
 
+// Official multi-channel grievance desk (demo helpline — same routing logic as production)
+const OFFICIAL_CHANNELS = {
+  Web: {
+    icon: "fa-globe",
+    color: "#6366f1",
+    title: "Web Application Portal",
+    desc: "Submit your grievance securely through this portal. Your MP office receives it instantly."
+  },
+  WhatsApp: {
+    icon: "fa-brands fa-whatsapp",
+    color: "#25D366",
+    title: "WhatsApp Grievance Desk",
+    desc: "Message the official People's Priority WhatsApp helpline. Include your constituency and issue.",
+    number: "919879012345",
+    hours: "9:00 AM – 6:00 PM, Mon–Sat",
+    actionLabel: "Open WhatsApp",
+    actionIcon: "fa-brands fa-whatsapp"
+  },
+  IVR: {
+    icon: "fa-solid fa-phone-volume",
+    color: "#0ea5e9",
+    title: "Voice Call (IVR) — Toll Free",
+    desc: "Dial the 24×7 IVR helpline. Follow voice prompts and state your constituency PIN.",
+    number: "1800114400",
+    hours: "24×7 Automated + Operator (9 AM – 6 PM)",
+    actionLabel: "Call IVR Helpline",
+    actionIcon: "fa-solid fa-phone"
+  },
+  SMS: {
+    icon: "fa-solid fa-comment-sms",
+    color: "#f59e0b",
+    title: "SMS Grievance Portal",
+    desc: "Send an SMS in the format: PP <Constituency> <Issue>. Standard SMS charges apply.",
+    number: "56161",
+    hours: "24×7",
+    actionLabel: "Compose SMS",
+    actionIcon: "fa-solid fa-comment-sms"
+  }
+};
+
 // Essential themes always ranked as high priority
 const ESSENTIAL_THEMES = ["Water Supply", "Healthcare"];
 
@@ -1167,6 +1207,7 @@ let userSubmissions = [
 document.addEventListener("DOMContentLoaded", () => {
   initConstituencyDropdowns();
   renderDemoScenarioButtons();
+  setupChannelSelector();
   setupLoginFlow();
   setupRoleSelector();
   setupPostLoginLangSelector();
@@ -1739,6 +1780,162 @@ function triggerLocationGpsLock() {
     });
 }
 
+// 6. Citizen Portal — official multi-channel routing
+function buildGrievancePayload() {
+  const state = document.getElementById("portal-state-select").value;
+  const constId = document.getElementById("portal-constituency-select").value;
+  const textVal = document.getElementById("portal-feedback-text").value.trim();
+  const cObj = getConstituencyById(constId);
+  const constituencyName = cObj ? cObj.name : "Not specified";
+  const ref = "PP-" + Date.now().toString(36).toUpperCase();
+  return { state, constId, constituencyName, textVal, ref };
+}
+
+function buildChannelUrl(channel, payload) {
+  const cfg = OFFICIAL_CHANNELS[channel];
+  if (!cfg || channel === "Web") return null;
+
+  if (channel === "WhatsApp") {
+    const lines = [
+      "*People's Priority — Citizen Grievance*",
+      "State: " + payload.state,
+      "Constituency: " + payload.constituencyName,
+      "Ref: " + payload.ref,
+      "",
+      payload.textVal || "I wish to register a grievance for my area."
+    ];
+    return "https://wa.me/" + cfg.number + "?text=" + encodeURIComponent(lines.join("\n"));
+  }
+
+  if (channel === "IVR") {
+    return "tel:" + cfg.number;
+  }
+
+  if (channel === "SMS") {
+    const body = "PP " + payload.constituencyName + " " + (payload.textVal || "Grievance");
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isMobile) {
+      return "sms:" + cfg.number + "?body=" + encodeURIComponent(body);
+    }
+    return "sms:" + cfg.number + "&body=" + encodeURIComponent(body);
+  }
+
+  return null;
+}
+
+function formatHelplineDisplay(number, channel) {
+  if (channel === "IVR" && number.length === 10) {
+    return number.slice(0, 4) + "-" + number.slice(4, 6) + "-" + number.slice(6);
+  }
+  if (channel === "WhatsApp") {
+    return "+91 " + number.slice(2, 7) + " " + number.slice(7);
+  }
+  return number;
+}
+
+function resolveFaIcon(icon) {
+  if (!icon) return "fa-solid fa-circle";
+  if (icon.indexOf("fa-brands ") === 0 || icon.indexOf("fa-solid ") === 0) return icon;
+  return "fa-solid " + icon;
+}
+
+function updateChannelPanel(channel) {
+  const panel = document.getElementById("portal-channel-panel");
+  const icon = document.getElementById("portal-channel-icon");
+  const title = document.getElementById("portal-channel-title");
+  const desc = document.getElementById("portal-channel-desc");
+  const meta = document.getElementById("portal-channel-meta");
+  const link = document.getElementById("portal-channel-direct-link");
+  const linkLabel = document.getElementById("portal-channel-link-label");
+  const btnSubmit = document.getElementById("btn-citizen-submit");
+  if (!panel || !icon || !title || !desc || !meta || !link || !btnSubmit) return;
+
+  const cfg = OFFICIAL_CHANNELS[channel] || OFFICIAL_CHANNELS.Web;
+
+  panel.setAttribute("data-channel", channel);
+  icon.className = resolveFaIcon(cfg.icon);
+  title.innerText = cfg.title;
+  desc.innerText = cfg.desc;
+
+  const payload = buildGrievancePayload();
+  const url = buildChannelUrl(channel, payload);
+
+  if (channel === "Web") {
+    meta.innerHTML = "<span><i class=\"fa-solid fa-lock\"></i> Secured submission via encrypted web portal</span>";
+    link.style.display = "none";
+    btnSubmit.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span data-i18n="btn_submit_feedback">Send to MP Office</span>';
+  } else {
+    const displayNum = formatHelplineDisplay(cfg.number, channel);
+    let helplineHref = "#";
+    if (channel === "IVR") helplineHref = "tel:" + cfg.number;
+    if (channel === "SMS") helplineHref = buildChannelUrl("SMS", payload) || "sms:" + cfg.number;
+    if (channel === "WhatsApp") helplineHref = buildChannelUrl("WhatsApp", payload) || "#";
+
+    let metaHtml = "";
+    if (channel === "IVR") {
+      metaHtml = "<a class=\"helpline-number\" href=\"tel:" + cfg.number + "\"><i class=\"fa-solid fa-headset\"></i> " + displayNum + "</a>";
+    } else {
+      metaHtml = "<a class=\"helpline-number\" href=\"" + helplineHref + "\" target=\"_blank\" rel=\"noopener noreferrer\"><i class=\"fa-solid fa-headset\"></i> " + displayNum + "</a>";
+    }
+    metaHtml += "<br><span><i class=\"fa-regular fa-clock\"></i> " + cfg.hours + "</span>";
+    if (channel === "SMS") {
+      metaHtml += "<br><span><i class=\"fa-solid fa-keyboard\"></i> Format: <code>PP &lt;Constituency&gt; &lt;Issue&gt;</code></span>";
+    }
+    if (channel === "IVR") {
+      metaHtml += "<br><span><i class=\"fa-solid fa-list-ol\"></i> Press 1 for grievance · 2 for status · 3 for constituency PIN</span>";
+    }
+    meta.innerHTML = metaHtml;
+    link.href = url || "#";
+    link.style.display = "inline-flex";
+    const linkIcon = link.querySelector("i");
+    if (linkIcon) linkIcon.className = resolveFaIcon(cfg.actionIcon);
+    if (linkLabel) linkLabel.innerText = cfg.actionLabel;
+    const btnIcons = { WhatsApp: "fa-brands fa-whatsapp", IVR: "fa-solid fa-phone", SMS: "fa-solid fa-comment-sms" };
+    btnSubmit.innerHTML = '<i class="' + btnIcons[channel] + '"></i> ' + cfg.actionLabel;
+  }
+}
+
+function openOfficialChannel(channel) {
+  const payload = buildGrievancePayload();
+  const url = buildChannelUrl(channel, payload);
+  if (!url) return false;
+  if (channel === "WhatsApp") {
+    window.open(url, "_blank", "noopener,noreferrer");
+  } else {
+    window.location.href = url;
+  }
+  return true;
+}
+
+function setupChannelSelector() {
+  const select = document.getElementById("portal-channel-select");
+  const link = document.getElementById("portal-channel-direct-link");
+  if (!select) return;
+
+  select.addEventListener("change", () => updateChannelPanel(select.value));
+
+  if (link) {
+    link.addEventListener("click", (e) => {
+      const channel = select.value;
+      if (channel === "Web") {
+        e.preventDefault();
+        return;
+      }
+      e.preventDefault();
+      openOfficialChannel(channel);
+    });
+  }
+
+  ["portal-state-select", "portal-constituency-select", "portal-feedback-text"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("input", () => {
+      if (select.value !== "Web") updateChannelPanel(select.value);
+    });
+  });
+
+  updateChannelPanel("Web");
+}
+
 // 6. Citizen Portal Actions
 function setupCitizenPortalActions() {
   const slotMic = document.getElementById("slot-mic-record");
@@ -1779,6 +1976,15 @@ function setupCitizenPortalActions() {
     const activeState = document.getElementById("portal-state-select").value;
     const constId = document.getElementById("portal-constituency-select").value;
     const channel = document.getElementById("portal-channel-select").value;
+
+    if (channel !== "Web") {
+      openOfficialChannel(channel);
+      displayCitizenPipelineMetadata(
+        textVal || "[" + channel + " channel — grievance registered via official helpline]",
+        activeState, constId, channel
+      );
+      return;
+    }
 
     if (!textVal.trim() && !simulatedVoiceFile) {
       alert("Please record a statement or enter some description before submitting.");
