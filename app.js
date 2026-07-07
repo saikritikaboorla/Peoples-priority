@@ -35,7 +35,7 @@ const OFFICIAL_CHANNELS = {
     color: "#25D366",
     title: "WhatsApp Grievance Desk",
     desc: "Message the official People's Priority WhatsApp helpline. Include your constituency and issue.",
-    number: "919879012345",
+    number: "xxxxxxx",
     hours: "9:00 AM – 6:00 PM, Mon–Sat",
     actionLabel: "Open WhatsApp",
     actionIcon: "fa-brands fa-whatsapp"
@@ -45,7 +45,7 @@ const OFFICIAL_CHANNELS = {
     color: "#0ea5e9",
     title: "Voice Call (IVR) — Toll Free",
     desc: "Dial the 24×7 IVR helpline. Follow voice prompts and state your constituency PIN.",
-    number: "1800114400",
+    number: "xxxxxxx",
     hours: "24×7 Automated + Operator (9 AM – 6 PM)",
     actionLabel: "Call IVR Helpline",
     actionIcon: "fa-solid fa-phone"
@@ -55,7 +55,7 @@ const OFFICIAL_CHANNELS = {
     color: "#f59e0b",
     title: "SMS Grievance Portal",
     desc: "Send an SMS in the format: PP <Constituency> <Issue>. Standard SMS charges apply.",
-    number: "56161",
+    number: "xxxxxxx",
     hours: "24×7",
     actionLabel: "Compose SMS",
     actionIcon: "fa-solid fa-comment-sms"
@@ -342,7 +342,7 @@ const translations = {
     login_loc_hint: "We will detect your state and Lok Sabha constituency automatically",
     login_loc_found: "Constituency detected",
     lbl_submission_constituency: "Lok Sabha Constituency",
-    lbl_demo_scenarios: "Demo Scenarios for Judges",
+    lbl_demo_scenarios: "Sample Templates",
     lbl_demo_hint: "Click a sample case to auto-fill state, constituency, and grievance text",
     lbl_constituency_label: "Constituency:",
     map_heading: "Constituency Geographic View",
@@ -1218,6 +1218,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupCameraCapture();
   setupRecommendationSliders();
   setupReportModal();
+  setupThemeToggle();
   
   // Set date
   const dateEl = document.getElementById("live-date");
@@ -1500,6 +1501,39 @@ function updateDashboardForConstituency(constituencyId) {
   document.getElementById("mp-state-enrollment").innerText = data.enrollment;
   document.getElementById("mp-state-water").innerText = data.water;
 
+  // Severity breakdown calculations
+  const total = data.submissions;
+  const urgentVal = data.urgent;
+  const critical = Math.round(urgentVal * 0.35);
+  const high = urgentVal - critical;
+  const medium = Math.round((total - urgentVal) * 0.45);
+  const low = total - critical - high - medium;
+
+  const pctCritical = (critical / total * 100).toFixed(1) + "%";
+  const pctHigh = (high / total * 100).toFixed(1) + "%";
+  const pctMedium = (medium / total * 100).toFixed(1) + "%";
+  const pctLow = (low / total * 100).toFixed(1) + "%";
+
+  const barCritical = document.getElementById("severity-bar-critical");
+  const barHigh = document.getElementById("severity-bar-high");
+  const barMedium = document.getElementById("severity-bar-medium");
+  const barLow = document.getElementById("severity-bar-low");
+
+  if (barCritical) barCritical.style.width = pctCritical;
+  if (barHigh) barHigh.style.width = pctHigh;
+  if (barMedium) barMedium.style.width = pctMedium;
+  if (barLow) barLow.style.width = pctLow;
+
+  const valCritical = document.getElementById("severity-val-critical");
+  const valHigh = document.getElementById("severity-val-high");
+  const valMedium = document.getElementById("severity-val-medium");
+  const valLow = document.getElementById("severity-val-low");
+
+  if (valCritical) valCritical.innerText = critical;
+  if (valHigh) valHigh.innerText = high;
+  if (valMedium) valMedium.innerText = medium;
+  if (valLow) valLow.innerText = low;
+
   const container = document.getElementById("mp-state-demands-container");
   container.innerHTML = "";
 
@@ -1524,7 +1558,7 @@ function updateDashboardForConstituency(constituencyId) {
           <span style="color: var(--text-muted); font-size: 0.78rem;">${d.category}</span>
           ${isEssential ? '<span class="priority-badge-essential">High Priority</span>' : ''}
         </span>
-        <span style="color: #fff; font-weight: 600; font-size: 0.78rem;">${d.count} reports</span>
+        <span style="color: var(--text-main); font-weight: 600; font-size: 0.78rem;">${d.count} reports</span>
       </div>
       <div class="demand-bar-bg">
         <div class="demand-bar-fill" style="width: ${widthPct}%; background: ${d.fillHex};"></div>
@@ -1824,6 +1858,7 @@ function buildChannelUrl(channel, payload) {
 }
 
 function formatHelplineDisplay(number, channel) {
+  if (number === "xxxxxxx") return "xxxxxxx";
   if (channel === "IVR" && number.length === 10) {
     return number.slice(0, 4) + "-" + number.slice(4, 6) + "-" + number.slice(6);
   }
@@ -2408,6 +2443,9 @@ function updateRecommendationsTable() {
     `;
     tbody.appendChild(row);
   });
+
+  // Render the Priority Curve Graph
+  updatePriorityLineChart(calculated);
 }
 
 // 9. MP Executive Report Generator Modal
@@ -2535,4 +2573,87 @@ function renderExecutiveReportContent() {
       <p>© 2026 People's Priority Decision Engine. All rights reserved.</p>
     </div>
   `;
+}
+
+// Light / Dark Theme Toggle Logic
+function setupThemeToggle() {
+  const btn = document.getElementById("theme-toggle-btn");
+  if (!btn) return;
+
+  const savedTheme = localStorage.getItem("theme") || "dark";
+  document.documentElement.setAttribute("data-theme", savedTheme);
+  updateThemeButtonUI(savedTheme);
+
+  btn.addEventListener("click", () => {
+    const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
+    const newTheme = currentTheme === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", newTheme);
+    localStorage.setItem("theme", newTheme);
+    updateThemeButtonUI(newTheme);
+  });
+}
+
+function updateThemeButtonUI(theme) {
+  const btn = document.getElementById("theme-toggle-btn");
+  if (!btn) return;
+  const icon = btn.querySelector("i");
+  const text = btn.querySelector("span");
+  if (theme === "light") {
+    icon.className = "fa-solid fa-moon";
+    text.innerText = "Dark Mode";
+  } else {
+    icon.className = "fa-solid fa-sun";
+    text.innerText = "Light Mode";
+  }
+}
+
+// Render dynamic project priorities line/area graph
+function updatePriorityLineChart(calculated) {
+  const linePath = document.getElementById("chart-line-path");
+  const areaPath = document.getElementById("chart-area-path");
+  const dotsGroup = document.getElementById("chart-dots-group");
+  if (!linePath || !areaPath || !dotsGroup || !calculated || !calculated.length) return;
+
+  const points = calculated.map((proj, idx) => {
+    const x = 40 + idx * 68;
+    const y = 140 - (proj.priorityScore / 100 * 120);
+    return { x, y, score: proj.priorityScore, title: proj.title };
+  });
+
+  const lineD = "M " + points.map(p => p.x + "," + p.y).join(" L ");
+  const areaD = lineD + " L 380,140 L 40,140 Z";
+
+  linePath.setAttribute("d", lineD);
+  areaPath.setAttribute("d", areaD);
+
+  dotsGroup.innerHTML = "";
+  points.forEach((p, idx) => {
+    // Circle dot
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", p.x);
+    circle.setAttribute("cy", p.y);
+    circle.setAttribute("r", 4.5);
+    circle.setAttribute("fill", idx === 0 ? "#f43f5e" : "#6366f1");
+    circle.setAttribute("stroke", "var(--bg-main)");
+    circle.setAttribute("stroke-width", "1.5");
+    circle.style.transition = "all 0.3s ease";
+    
+    // Label above dot
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x", p.x);
+    text.setAttribute("y", p.y - 8);
+    text.setAttribute("fill", "var(--text-main)");
+    text.setAttribute("font-size", "8");
+    text.setAttribute("font-weight", "700");
+    text.setAttribute("text-anchor", "middle");
+    text.textContent = p.score + "%";
+    
+    // Tooltip
+    const tooltip = document.createElementNS("http://www.w3.org/2000/svg", "title");
+    tooltip.textContent = `${idx + 1}. ${p.title} (${p.score}%)`;
+    circle.appendChild(tooltip);
+    
+    dotsGroup.appendChild(circle);
+    dotsGroup.appendChild(text);
+  });
 }
