@@ -19,6 +19,8 @@ const SENTIMENT_COLORS: Record<string, string> = {
   POSITIVE: 'bg-green-100 text-green-700',
 };
 
+const ESSENTIAL_CATEGORIES = ['WATER_SUPPLY', 'HEALTHCARE'];
+
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardOverview | null>(null);
   const [heatmap, setHeatmap] = useState<HeatmapPoint[]>([]);
@@ -80,14 +82,17 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold">MP Dashboard</h1>
-            <p className="text-slate-600">Evidence-based development planning insights</p>
+            <h1 className="text-3xl font-bold">MP Planning Dashboard</h1>
+            <p className="text-slate-600">
+              {constituencies.find(c => c.id === constituencyId)?.name || 'Your constituency'} — ranked by citizen reports
+            </p>
           </div>
           <div className="flex gap-3">
             <select
               value={constituencyId}
               onChange={(e) => setConstituencyId(e.target.value)}
-              className="border border-slate-300 rounded-lg px-3 py-2 text-sm"
+              className="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white"
+              title="Select your constituency"
             >
               {constituencies.map((c) => (
                 <option key={c.id} value={c.id}>{c.name}</option>
@@ -95,7 +100,7 @@ export default function DashboardPage() {
             </select>
             <button onClick={handleGenerate} disabled={generating} className="btn-primary flex items-center gap-2 text-sm">
               {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-              Regenerate Recommendations
+              Update Rankings
             </button>
           </div>
         </div>
@@ -119,7 +124,8 @@ export default function DashboardPage() {
 
         <div className="grid lg:grid-cols-2 gap-6 mb-8">
           <div className="card">
-            <h2 className="font-semibold text-lg mb-4">Trending Development Topics</h2>
+            <h2 className="font-semibold text-lg mb-1">Trending Issues</h2>
+            <p className="text-sm text-slate-500 mb-4">Most reported topics in your constituency</p>
             <ThemeChart data={(data?.trendingTopics ?? []).map((t) => ({ name: t.name, count: t.count }))} />
           </div>
           <div className="card">
@@ -140,7 +146,8 @@ export default function DashboardPage() {
         </div>
 
         <div className="card mb-8">
-          <h2 className="font-semibold text-lg mb-4">Recommended Projects (Priority Ranking)</h2>
+          <h2 className="font-semibold text-lg mb-1">Project Priority Ranking</h2>
+          <p className="text-sm text-slate-500 mb-4">Water and healthcare are always high priority. Other projects ranked by how often citizens report them.</p>
           {data?.recommendations?.length ? (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -148,25 +155,33 @@ export default function DashboardPage() {
                   <tr className="border-b border-slate-200 text-left text-slate-500">
                     <th className="pb-3 pr-4">Rank</th>
                     <th className="pb-3 pr-4">Project</th>
+                    <th className="pb-3 pr-4">Reports</th>
                     <th className="pb-3 pr-4">Demand</th>
                     <th className="pb-3 pr-4">Impact</th>
-                    <th className="pb-3 pr-4">Cost</th>
-                    <th className="pb-3 pr-4">Requests</th>
                     <th className="pb-3">Priority</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.recommendations.map((r) => (
+                  {[...(data.recommendations)]
+                    .sort((a, b) => {
+                      const aEss = ESSENTIAL_CATEGORIES.includes(a.themeCategory) ? 1 : 0;
+                      const bEss = ESSENTIAL_CATEGORIES.includes(b.themeCategory) ? 1 : 0;
+                      if (aEss !== bEss) return bEss - aEss;
+                      return b.priorityScore - a.priorityScore;
+                    })
+                    .map((r, idx) => (
                     <tr key={r.id} className="border-b border-slate-100 hover:bg-slate-50">
-                      <td className="py-3 pr-4 font-bold text-blue-700">#{r.rank}</td>
+                      <td className="py-3 pr-4 font-bold text-blue-700">#{idx + 1}</td>
                       <td className="py-3 pr-4">
                         <div className="font-medium">{r.title}</div>
                         <div className="text-xs text-slate-500">{r.description}</div>
+                        {ESSENTIAL_CATEGORIES.includes(r.themeCategory) && (
+                          <span className="inline-block mt-1 text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded">High Priority</span>
+                        )}
                       </td>
+                      <td className="py-3 pr-4">{r.citizenRequestCount}</td>
                       <td className="py-3 pr-4">{r.demandScore}</td>
                       <td className="py-3 pr-4">{r.impactScore}</td>
-                      <td className="py-3 pr-4">{r.estimatedCost}</td>
-                      <td className="py-3 pr-4">{r.citizenRequestCount}</td>
                       <td className="py-3">
                         <span className={`inline-block px-2 py-1 rounded-full text-xs font-bold ${
                           r.priorityScore >= 80 ? 'bg-green-100 text-green-700' :
@@ -183,7 +198,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <p className="text-slate-500 text-center py-8">
-              No recommendations yet. Click &quot;Regenerate Recommendations&quot; to compute priorities.
+              No rankings yet. Click &quot;Update Rankings&quot; to see priority projects for this constituency.
             </p>
           )}
         </div>

@@ -40,6 +40,18 @@
           </div>
         </div>
 
+        <div class="form-group" id="mp-constituency-group" style="display: none;">
+          <label data-i18n="login_constituency_lbl">Your Constituency</label>
+          <select id="login-constituency">
+            <option value="Tamil Nadu">Tamil Nadu — Chennai South</option>
+            <option value="Karnataka">Karnataka — Bengaluru North</option>
+            <option value="Maharashtra">Maharashtra — Mumbai North</option>
+            <option value="Uttar Pradesh">Uttar Pradesh — Lucknow Central</option>
+            <option value="West Bengal">West Bengal — Kolkata South</option>
+          </select>
+          <p class="form-hint" data-i18n="login_constituency_hint">Select the area you represent. Dashboard will show only your constituency issues.</p>
+        </div>
+
         <div class="form-group">
           <label data-i18n="login_lang_lbl">Choose Language</label>
           <select id="login-language">
@@ -88,10 +100,6 @@
         <div class="nav-item active" data-tab="mp-dashboard" data-nav-role="mp">
           <i class="fa-solid fa-chart-line"></i>
           <span data-i18n="nav_mp_dashboard">MP Analytics</span>
-        </div>
-        <div class="nav-item" data-tab="mp-sandbox" data-nav-role="mp">
-          <i class="fa-solid fa-microchip"></i>
-          <span data-i18n="nav_mp_sandbox">AI Parsing Sandbox</span>
         </div>
         <div class="nav-item" data-tab="mp-priorities" data-nav-role="mp">
           <i class="fa-solid fa-list-check"></i>
@@ -152,27 +160,27 @@
       <section id="citizen-portal" class="tab-view active">
         <div class="page-header">
           <div class="header-title">
-            <h2 data-i18n="cit_portal_title">Submit Feedback & Suggestions</h2>
-            <p data-i18n="cit_portal_desc">Speak or type your developmental requests directly to your regional MP office</p>
+            <h2 data-i18n="cit_portal_title">Tell Us What Your Area Needs</h2>
+            <p data-i18n="cit_portal_desc">Speak, type, or take a photo — we will send it to your MP office</p>
           </div>
         </div>
 
         <div class="portal-layout">
           <!-- Submission form card -->
-          <div class="glass-panel">
+          <div class="glass-panel citizen-form-panel">
             <div class="panel-header">
-              <h3 data-i18n="cit_form_heading">Citizen Statement Submission</h3>
-              <p data-i18n="cit_form_sub">All uploads are processed through automated AI translation layers.</p>
+              <h3 data-i18n="cit_form_heading">Share Your Problem</h3>
+              <p data-i18n="cit_form_sub">Use simple words in any language. Tap the mic to speak or camera to show the issue.</p>
             </div>
 
             <!-- Auto location detection status -->
             <div class="form-group">
-              <div class="location-box" id="location-status-container">
-                <button class="btn-secondary" id="btn-enable-gps" style="width: auto;">
+              <div class="location-box friendly-location-box" id="location-status-container">
+                <button class="btn-secondary btn-friendly" id="btn-enable-gps">
                   <i class="fa-solid fa-location-crosshairs"></i>
-                  <span data-i18n="gps_enable_btn">Enable Location Sharing</span>
+                  <span data-i18n="gps_enable_btn">Find My Location</span>
                 </button>
-                <div class="location-status-text" id="gps-status-label" data-i18n="gps_disabled">Location data: Disabled (Using default)</div>
+                <div class="location-status-text" id="gps-status-label" data-i18n="gps_disabled">Tap the button above so we know where you are</div>
               </div>
             </div>
 
@@ -199,24 +207,25 @@
             </div>
 
             <div class="form-group">
-              <label data-i18n="lbl_text_transcript">Type feedback directly (or tap Microphone to record speech)</label>
+              <label data-i18n="lbl_text_transcript">Write your problem here</label>
+              <p class="form-hint" data-i18n="lbl_text_hint">Example: "No clean water for 3 days" or "Road has big holes near school"</p>
               <textarea id="portal-feedback-text" rows="5" placeholder="Describe the issue in your chosen language..."></textarea>
             </div>
 
             <div class="form-group">
-              <label data-i18n="lbl_attachments">Media Attachments (Record Audio / Photo Upload)</label>
+              <label data-i18n="lbl_attachments">Or use voice / photo</label>
               <div class="attachment-slots">
-                <!-- Recording toggle: first click starts, second click stops -->
-                <div class="upload-slot" id="slot-mic-record">
+                <div class="upload-slot upload-slot-friendly" id="slot-mic-record">
                   <div class="record-pulse-ring" id="mic-pulse-ring"></div>
                   <i class="fa-solid fa-microphone" id="mic-icon-graphic"></i>
-                  <span id="txt-mic-status" data-i18n="slot_record_voice">Tap to Record Voice</span>
+                  <span id="txt-mic-status" data-i18n="slot_record_voice">Tap to Speak</span>
                 </div>
-                <div class="upload-slot" id="slot-camera-upload">
+                <div class="upload-slot upload-slot-friendly" id="slot-camera-upload">
                   <i class="fa-solid fa-camera"></i>
-                  <span id="txt-cam-status" data-i18n="slot_upload_photo">Upload / Snap Photo</span>
+                  <span id="txt-cam-status" data-i18n="slot_upload_photo">Take a Photo</span>
                 </div>
               </div>
+              <input type="file" id="portal-camera-input" accept="image/*" capture="environment" style="display:none;">
             </div>
 
             <!-- Simulated live recording timer or indicators -->
@@ -232,46 +241,41 @@
               <img id="portal-preview-img" src="" alt="Citizen attachment preview">
             </div>
 
-            <button class="btn-primary" id="btn-citizen-submit">
+            <button class="btn-primary btn-friendly btn-submit-large" id="btn-citizen-submit">
               <i class="fa-solid fa-paper-plane"></i>
-              <span data-i18n="btn_submit_feedback">Submit Feedback</span>
+              <span data-i18n="btn_submit_feedback">Send to MP Office</span>
             </button>
           </div>
 
-          <!-- Pipeline Simulation Tracker -->
-          <div class="glass-panel">
-            <div class="panel-header">
-              <h3 data-i18n="visualizer_heading">Multilingual AI Pipelines Tracker</h3>
-              <p data-i18n="visualizer_sub">Visualizing ingestion, translation, OCR, and classification steps</p>
+          <!-- Compact Pipeline Tracker -->
+          <div class="glass-panel pipeline-tracker-panel">
+            <div class="panel-header compact-header">
+              <h3 data-i18n="visualizer_heading">Processing Status</h3>
             </div>
             
-            <div class="pipeline-visualizer">
-              <div class="pipeline-step" id="portal-step-1">
-                <div class="step-icon"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="pipeline-visualizer pipeline-visualizer-compact">
+              <div class="pipeline-step pipeline-step-compact" id="portal-step-1">
+                <div class="step-icon step-icon-compact"><i class="fa-solid fa-location-dot"></i></div>
                 <div class="step-text">
-                  <h5 data-i18n="step_1_title">1. Location & Channel Validation</h5>
-                  <p data-i18n="step_1_desc">Geocoding GPS points, verifying state boundary polygons, and queuing messages.</p>
+                  <h5 data-i18n="step_1_short">Location</h5>
                 </div>
               </div>
-              <div class="pipeline-step" id="portal-step-2">
-                <div class="step-icon"><i class="fa-solid fa-microphone-lines"></i></div>
+              <div class="pipeline-step pipeline-step-compact" id="portal-step-2">
+                <div class="step-icon step-icon-compact"><i class="fa-solid fa-microphone"></i></div>
                 <div class="step-text">
-                  <h5 data-i18n="step_2_title">2. Voice Transcribe & OCR Scanning</h5>
-                  <p data-i18n="step_2_desc">Executing speech-to-text transcription via Whisper and classifying image faults.</p>
+                  <h5 data-i18n="step_2_short">Voice & Photo</h5>
                 </div>
               </div>
-              <div class="pipeline-step" id="portal-step-3">
-                <div class="step-icon"><i class="fa-solid fa-language"></i></div>
+              <div class="pipeline-step pipeline-step-compact" id="portal-step-3">
+                <div class="step-icon step-icon-compact"><i class="fa-solid fa-language"></i></div>
                 <div class="step-text">
-                  <h5 data-i18n="step_3_title">3. Bhashini AI Translation Layer</h5>
-                  <p data-i18n="step_3_desc">Detecting languages and producing unified English translations.</p>
+                  <h5 data-i18n="step_3_short">Translation</h5>
                 </div>
               </div>
-              <div class="pipeline-step" id="portal-step-4">
-                <div class="step-icon"><i class="fa-solid fa-tags"></i></div>
+              <div class="pipeline-step pipeline-step-compact" id="portal-step-4">
+                <div class="step-icon step-icon-compact"><i class="fa-solid fa-tags"></i></div>
                 <div class="step-text">
-                  <h5 data-i18n="step_4_title">4. Theme NER Classification</h5>
-                  <p data-i18n="step_4_desc">Running named entity token parsing to isolate wards, sectors, and issues.</p>
+                  <h5 data-i18n="step_4_short">Classification</h5>
                 </div>
               </div>
             </div>
@@ -341,8 +345,8 @@
       <section id="mp-dashboard" class="tab-view">
         <div class="page-header">
           <div class="header-title">
-            <h2 data-i18n="mp_dash_title">MP Development Planning Hub</h2>
-            <p data-i18n="mp_dash_desc">State-wide aggregated feedback dashboards and public demographic indicators</p>
+            <h2 data-i18n="mp_dash_title">Your Constituency at a Glance</h2>
+            <p data-i18n="mp_dash_desc">See what citizens in your area need most — ranked by urgency and frequency</p>
           </div>
         </div>
 
@@ -465,7 +469,8 @@
             </div>
 
             <div class="demands-chart">
-              <div class="demands-title" data-i18n="top_state_demands">Top State Public Demands</div>
+              <div class="demands-title" data-i18n="top_constituency_issues">Ranked Issues in Your Constituency</div>
+              <p class="form-hint" style="margin-bottom:10px;" data-i18n="issues_rank_hint">Water & healthcare are always high priority. Others ranked by how often citizens report them.</p>
               <div id="mp-state-demands-container">
                 <!-- Dynamic bars loaded in app.js -->
               </div>
@@ -591,8 +596,8 @@
       <section id="mp-priorities" class="tab-view">
         <div class="page-header">
           <div class="header-title">
-            <h2 data-i18n="recommendations_title">Project Prioritization Dashboard</h2>
-            <p data-i18n="recommendations_desc">Balance budget limitations and public demands using weights adjustments</p>
+            <h2 data-i18n="recommendations_title">Which Projects to Fund First?</h2>
+            <p data-i18n="recommendations_desc">Adjust weights below. Water and healthcare always stay high priority.</p>
           </div>
         </div>
 
@@ -801,6 +806,19 @@
       <div class="permission-actions">
         <button class="btn-secondary" id="btn-loc-deny" data-i18n="btn_deny">Block</button>
         <button class="btn-primary" id="btn-loc-allow" style="width:auto;" data-i18n="btn_allow">Allow Access</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Camera Capture Modal -->
+  <div class="modal-overlay" id="camera-capture-modal" style="z-index: 2000; display:none;">
+    <div class="permission-prompt-card glass-panel camera-modal-card">
+      <h3 data-i18n="cam_modal_title">Take a Photo of the Issue</h3>
+      <video id="camera-preview-video" autoplay playsinline style="width:100%; border-radius:8px; background:#000; max-height:280px;"></video>
+      <canvas id="camera-capture-canvas" style="display:none;"></canvas>
+      <div class="permission-actions" style="margin-top:14px;">
+        <button class="btn-secondary" id="btn-camera-cancel" data-i18n="btn_cancel">Cancel</button>
+        <button class="btn-primary" id="btn-camera-snap" style="width:auto;" data-i18n="btn_snap_photo">Take Photo</button>
       </div>
     </div>
   </div>

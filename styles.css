@@ -804,8 +804,151 @@ body {
 /* Citizen Feedback Portal Components */
 .portal-layout {
   display: grid;
-  grid-template-columns: 1.3fr 1fr;
+  grid-template-columns: 1.6fr 0.75fr;
   gap: 20px;
+  align-items: start;
+}
+
+/* Citizen-friendly UI */
+.citizen-form-panel .panel-header h3 {
+  font-size: 1.1rem;
+}
+
+.form-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 0 0 6px 0;
+}
+
+.btn-friendly {
+  padding: 12px 18px !important;
+  font-size: 0.9rem !important;
+  font-weight: 600;
+}
+
+.btn-submit-large {
+  width: 100%;
+  padding: 14px 20px !important;
+  font-size: 1rem !important;
+  margin-top: 4px;
+}
+
+.friendly-location-box {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.friendly-location-box .btn-friendly {
+  width: 100%;
+  justify-content: center;
+}
+
+.upload-slot-friendly {
+  height: 90px;
+  border-width: 2px;
+}
+
+.upload-slot-friendly i {
+  font-size: 1.4rem;
+}
+
+.upload-slot-friendly span {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* Compact pipeline tracker panel */
+.pipeline-tracker-panel {
+  max-width: 280px;
+}
+
+.pipeline-tracker-panel .compact-header {
+  margin-bottom: 8px;
+}
+
+.pipeline-tracker-panel .compact-header h3 {
+  font-size: 0.85rem;
+}
+
+.pipeline-visualizer-compact {
+  gap: 6px;
+}
+
+.pipeline-step-compact {
+  padding: 8px 10px;
+  gap: 8px;
+}
+
+.pipeline-step-compact .step-icon-compact {
+  width: 22px;
+  height: 22px;
+  font-size: 0.65rem;
+}
+
+.pipeline-step-compact .step-text h5 {
+  font-size: 0.72rem;
+  margin: 0;
+}
+
+.pipeline-tracker-panel .metadata-output-card {
+  margin-top: 12px;
+}
+
+/* MP priority badges */
+.priority-badge-essential {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  margin-left: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.priority-rank-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+/* MP priorities dashboard polish */
+.weights-panel .panel-header h3 {
+  font-size: 1rem;
+}
+
+.weights-panel .panel-header p {
+  font-size: 0.82rem;
+}
+
+.table-panel-header h3 {
+  font-size: 1rem;
+}
+
+.camera-modal-card {
+  max-width: 420px;
+  width: 90%;
+}
+
+@media (max-width: 900px) {
+  .portal-layout {
+    grid-template-columns: 1fr;
+  }
+  .pipeline-tracker-panel {
+    max-width: 100%;
+  }
 }
 
 .location-box {

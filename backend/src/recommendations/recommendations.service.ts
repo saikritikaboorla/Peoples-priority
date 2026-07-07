@@ -127,6 +127,10 @@ export class RecommendationsService {
         planAlignmentScore,
       });
 
+      const boostedPriority = (category === ThemeCategory.WATER_SUPPLY || category === ThemeCategory.HEALTHCARE)
+        ? Math.max(priorityScore, 80)
+        : priorityScore;
+
       const rec = await this.prisma.projectRecommendation.create({
         data: {
           title: template.title,
@@ -138,7 +142,7 @@ export class RecommendationsService {
           costScore,
           budgetScore,
           planAlignmentScore,
-          priorityScore,
+          priorityScore: boostedPriority,
           citizenRequestCount: data.count,
           affectedPopulation: avgPopulation * data.districts.size,
           estimatedCost: costScore <= 50 ? 'Medium' : costScore <= 70 ? 'High' : 'Very High',
@@ -150,7 +154,12 @@ export class RecommendationsService {
       recommendations.push(rec);
     }
 
-    const ranked = recommendations.sort((a, b) => b.priorityScore - a.priorityScore);
+    const ranked = recommendations.sort((a, b) => {
+      const aEssential = a.themeCategory === ThemeCategory.WATER_SUPPLY || a.themeCategory === ThemeCategory.HEALTHCARE;
+      const bEssential = b.themeCategory === ThemeCategory.WATER_SUPPLY || b.themeCategory === ThemeCategory.HEALTHCARE;
+      if (aEssential !== bEssential) return bEssential ? 1 : -1;
+      return b.priorityScore - a.priorityScore;
+    });
     for (let i = 0; i < ranked.length; i++) {
       await this.prisma.projectRecommendation.update({
         where: { id: ranked[i].id },

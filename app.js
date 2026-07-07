@@ -2,10 +2,30 @@
 let currentUserRole = "citizen"; // citizen or mp
 let currentLanguage = "en"; // en, hi, ta, te, kn, bn
 let activeStateName = "Tamil Nadu";
+let activeConstituency = "Tamil Nadu";
 let mpActiveLayer = "literacy";
 let isRecording = false;
 let recordTimerInterval = null;
 let recordSeconds = 0;
+let speechRecognition = null;
+let cameraStream = null;
+let detectedLocation = null;
+
+// Speech recognition language codes
+const speechLangMap = {
+  en: "en-IN",
+  hi: "hi-IN",
+  ta: "ta-IN",
+  te: "te-IN",
+  kn: "kn-IN",
+  bn: "bn-IN"
+};
+
+// Essential themes always ranked as high priority
+const ESSENTIAL_THEMES = ["Water Supply", "Healthcare"];
+
+// API base (optional backend integration)
+const API_BASE = "http://localhost:3001/api";
 
 // Permissions State
 let permissions = {
@@ -273,6 +293,8 @@ const translations = {
     role_mp_title: "MP Dashboard",
     role_mp_desc: "Analyze needs & rank projects",
     login_lang_lbl: "Choose Language",
+    login_constituency_lbl: "Your Constituency",
+    login_constituency_hint: "Select the area you represent. Dashboard will show only your constituency issues.",
     login_btn: "Enter Portal",
     side_subtitle: "AI Decision Support",
     nav_citizen_submit: "Submit Suggestions",
@@ -283,31 +305,34 @@ const translations = {
     nav_sys_architecture: "System Architecture",
     welcome_back: "Welcome Back,",
     ai_status: "AI Engine Active",
-    cit_portal_title: "Submit Feedback & Suggestions",
-    cit_portal_desc: "Speak or type your developmental requests directly to your regional MP office",
-    cit_form_heading: "Citizen Statement Submission",
-    cit_form_sub: "All uploads are processed through automated AI translation layers.",
-    gps_enable_btn: "Enable Location Sharing",
-    gps_disabled: "Location data: Disabled (Using default)",
-    gps_enabled: "Location data: Active (Simulated GPS Lock)",
+    cit_portal_title: "Tell Us What Your Area Needs",
+    cit_portal_desc: "Speak, type, or take a photo — we will send it to your MP office",
+    cit_form_heading: "Share Your Problem",
+    cit_form_sub: "Use simple words in any language. Tap the mic to speak or camera to show the issue.",
+    gps_enable_btn: "Find My Location",
+    gps_disabled: "Tap the button above so we know where you are",
+    gps_enabled: "Location found",
+    gps_loading: "Finding your location...",
+    gps_error: "Could not find location. Please select your state below.",
     lbl_submission_state: "State / Territory",
     lbl_submission_channel: "Submission Channel",
-    lbl_text_transcript: "Type feedback directly (or tap Microphone to record speech)",
-    lbl_attachments: "Media Attachments (Record Audio / Photo Upload)",
-    slot_record_voice: "Tap to Record Voice",
-    slot_upload_photo: "Upload / Snap Photo",
-    recording_active: "Recording Active. Tap slot again to STOP & Transcribe...",
-    btn_submit_feedback: "Submit Feedback",
-    visualizer_heading: "Multilingual AI Pipelines Tracker",
-    visualizer_sub: "Visualizing ingestion, translation, OCR, and classification steps",
-    step_1_title: "1. Location & Channel Validation",
-    step_1_desc: "Geocoding GPS points, verifying state boundary polygons, and queuing messages.",
-    step_2_title: "2. Voice Transcribe & OCR Scanning",
-    step_2_desc: "Executing speech-to-text transcription via Whisper and classifying image faults.",
-    step_3_title: "3. Bhashini AI Translation Layer",
-    step_3_desc: "Detecting languages and producing unified English translations.",
-    step_4_title: "4. Theme NER Classification",
-    step_4_desc: "Running named entity token parsing to isolate wards, sectors, and issues.",
+    lbl_text_transcript: "Write your problem here",
+    lbl_text_hint: "Example: \"No clean water for 3 days\" or \"Road has big holes near school\"",
+    lbl_attachments: "Or use voice / photo",
+    slot_record_voice: "Tap to Speak",
+    slot_upload_photo: "Take a Photo",
+    recording_active: "Listening... Tap again to stop and finish.",
+    btn_submit_feedback: "Send to MP Office",
+    visualizer_heading: "Processing Status",
+    step_1_short: "Location",
+    step_2_short: "Voice & Photo",
+    step_3_short: "Translation",
+    step_4_short: "Classification",
+    cam_modal_title: "Take a Photo of the Issue",
+    btn_snap_photo: "Take Photo",
+    btn_cancel: "Cancel",
+    top_constituency_issues: "Ranked Issues in Your Constituency",
+    issues_rank_hint: "Water & healthcare are always high priority. Others ranked by how often citizens report them.",
     metadata_header: "Processed Output Metadata",
     meta_orig: "Original Text:",
     meta_trans: "Translation:",
@@ -356,8 +381,8 @@ const translations = {
     sentiment_neg: "Negative (Urgent)",
     sentiment_neu: "Neutral",
     sentiment_pos: "Positive",
-    recommendations_title: "Project Prioritization Dashboard",
-    recommendations_desc: "Balance budget limitations and public demands using weights adjustments",
+    recommendations_title: "Which Projects to Fund First?",
+    recommendations_desc: "Adjust weights below. Water and healthcare always stay high priority.",
     weights_heading: "Prioritization Mechanics Weights Settings",
     weights_desc: "Modify sliders to calculate composite priority rankings for public works in the active state.",
     w_demand: "Citizen Demand Weight",
@@ -1135,7 +1160,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupStateMap();
   setupHardwarePermissions();
   setupCitizenPortalActions();
-  setupSandboxActions();
+  setupCameraCapture();
   setupRecommendationSliders();
   setupReportModal();
   setupStateDropdownSelector();
@@ -1156,25 +1181,22 @@ function setupLoginFlow() {
   const loginLang = document.getElementById("login-language");
 
   btnLogin.addEventListener("click", () => {
-    // Read selections
     const selectedRoleCard = document.querySelector(".role-card.active");
     currentUserRole = selectedRoleCard ? selectedRoleCard.getAttribute("data-role") : "citizen";
     currentLanguage = loginLang.value;
 
-    // Apply login
+    if (currentUserRole === "mp") {
+      const constituencySelect = document.getElementById("login-constituency");
+      activeConstituency = constituencySelect ? constituencySelect.value : "Tamil Nadu";
+      activeStateName = activeConstituency;
+    }
+
     loginScreen.style.display = "none";
     appWrapper.style.display = "grid";
 
-    // Set post-login language selectors sync
     document.getElementById("post-language-selector").value = currentLanguage;
-
-    // Configure workspace based on role
     configureWorkspaceForRole();
-    
-    // Translate entire application UI
     translateApp(currentLanguage);
-
-    // Initial render updates
     updateDashboardForState(activeStateName);
     updateRecommendationsTable();
   });
@@ -1193,10 +1215,16 @@ function setupLoginFlow() {
 
 function setupRoleSelector() {
   const roleCards = document.querySelectorAll(".role-card");
+  const constituencyGroup = document.getElementById("mp-constituency-group");
+
   roleCards.forEach(card => {
     card.addEventListener("click", () => {
       roleCards.forEach(c => c.classList.remove("active"));
       card.classList.add("active");
+      const role = card.getAttribute("data-role");
+      if (constituencyGroup) {
+        constituencyGroup.style.display = role === "mp" ? "flex" : "none";
+      }
     });
   });
 }
@@ -1226,11 +1254,10 @@ function configureWorkspaceForRole() {
   // Adjust headings & details
   if (currentUserRole === "mp") {
     footerUsername.innerText = "Honorable MP";
-    footerRole.setAttribute("data-i18n", "role_mp");
+    footerRole.innerText = activeConstituency;
     greetingUsername.innerText = "Honorable MP";
     footerAvatar.innerHTML = '<i class="fa-solid fa-user-tie"></i>';
-    
-    // Set active tab to MP dashboard
+    lockMpConstituencyView();
     switchActiveTab("mp-dashboard");
   } else {
     footerUsername.innerText = "Citizen Portal";
@@ -1254,6 +1281,33 @@ function configureWorkspaceForRole() {
   });
 
   renderCitizenHistory();
+}
+
+function lockMpConstituencyView() {
+  activeStateName = activeConstituency;
+  const selector = document.getElementById("mp-state-dropdown-selector");
+  if (selector) {
+    selector.innerHTML = `<option value="${activeConstituency}">${activeConstituency}</option>`;
+    selector.value = activeConstituency;
+    selector.disabled = true;
+  }
+  const statePolys = document.querySelectorAll(".map-ward-poly");
+  statePolys.forEach(p => {
+    p.style.pointerEvents = "none";
+    p.style.opacity = "0.4";
+  });
+  let polyId = "state-tn";
+  if (activeConstituency === "Tamil Nadu") polyId = "state-tn";
+  else if (activeConstituency === "Karnataka") polyId = "state-kn";
+  else if (activeConstituency === "Maharashtra") polyId = "state-mh";
+  else if (activeConstituency === "Uttar Pradesh") polyId = "state-up";
+  else if (activeConstituency === "West Bengal") polyId = "state-wb";
+  statePolys.forEach(p => p.classList.remove("active"));
+  const poly = document.getElementById(polyId);
+  if (poly) {
+    poly.classList.add("active");
+    poly.style.opacity = "1";
+  }
 }
 
 function switchActiveTab(tabId) {
@@ -1397,20 +1451,32 @@ function updateDashboardForState(stateName) {
   document.getElementById("mp-state-enrollment").innerText = data.enrollment;
   document.getElementById("mp-state-water").innerText = data.water;
 
-  // Render demands chart
+  // Render ranked demands chart (essential themes first, then by frequency)
   const container = document.getElementById("mp-state-demands-container");
   container.innerHTML = "";
-  
-  const maxVal = Math.max(...data.demands.map(d => d.count));
-  data.demands.forEach(d => {
+
+  const rankedDemands = [...data.demands].sort((a, b) => {
+    const aEssential = ESSENTIAL_THEMES.includes(a.category) ? 1 : 0;
+    const bEssential = ESSENTIAL_THEMES.includes(b.category) ? 1 : 0;
+    if (aEssential !== bEssential) return bEssential - aEssential;
+    return b.count - a.count;
+  });
+
+  const maxVal = Math.max(...rankedDemands.map(d => d.count));
+  rankedDemands.forEach((d, idx) => {
     const widthPct = (d.count / maxVal) * 100;
+    const isEssential = ESSENTIAL_THEMES.includes(d.category);
     const row = document.createElement("div");
     row.className = "demand-bar-row";
     row.style.marginBottom = "8px";
     row.innerHTML = `
       <div class="demand-bar-label">
-        <span style="color: var(--text-muted); font-size: 0.78rem;">${d.category}</span>
-        <span style="color: #fff; font-weight: 600; font-size: 0.78rem;">${d.count} requests</span>
+        <span style="display:flex; align-items:center;">
+          <span class="priority-rank-num">${idx + 1}</span>
+          <span style="color: var(--text-muted); font-size: 0.78rem;">${d.category}</span>
+          ${isEssential ? '<span class="priority-badge-essential">High Priority</span>' : ''}
+        </span>
+        <span style="color: #fff; font-weight: 600; font-size: 0.78rem;">${d.count} reports</span>
       </div>
       <div class="demand-bar-bg">
         <div class="demand-bar-fill" style="width: ${widthPct}%; background: ${d.fillHex};"></div>
@@ -1554,36 +1620,162 @@ function setupHardwarePermissions() {
 }
 
 function triggerCameraSnap() {
+  const cameraInput = document.getElementById("portal-camera-input");
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    openCameraModal();
+  } else if (cameraInput) {
+    cameraInput.click();
+  }
+}
+
+function openCameraModal() {
+  const modal = document.getElementById("camera-capture-modal");
+  const video = document.getElementById("camera-preview-video");
+
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
+    .then((stream) => {
+      cameraStream = stream;
+      video.srcObject = stream;
+      modal.style.display = "flex";
+    })
+    .catch(() => {
+      const cameraInput = document.getElementById("portal-camera-input");
+      if (cameraInput) cameraInput.click();
+    });
+}
+
+function closeCameraModal() {
+  const modal = document.getElementById("camera-capture-modal");
+  const video = document.getElementById("camera-preview-video");
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+  video.srcObject = null;
+  modal.style.display = "none";
+}
+
+function capturePhotoFromCamera() {
+  const video = document.getElementById("camera-preview-video");
+  const canvas = document.getElementById("camera-capture-canvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    const fileName = `citizen_photo_${Date.now()}.jpg`;
+    showPhotoPreview(URL.createObjectURL(blob), fileName);
+    closeCameraModal();
+  }, "image/jpeg", 0.85);
+}
+
+function showPhotoPreview(src, fileName) {
   const txtCam = document.getElementById("txt-cam-status");
   const slotCam = document.getElementById("slot-camera-upload");
   const preview = document.getElementById("portal-photo-preview");
   const previewImg = document.getElementById("portal-preview-img");
   const previewFilename = document.getElementById("portal-photo-filename");
 
-  // Load a mock snapshot
-  simulatedPhotoFile = "snap_infrastructure_damage_912.jpg";
-  simulatedPhotoSrc = "https://images.unsplash.com/photo-1515162305285-0293e4767cc2?q=80&w=600&auto=format&fit=crop";
+  simulatedPhotoFile = fileName;
+  simulatedPhotoSrc = src;
 
   slotCam.classList.add("has-file");
-  txtCam.innerText = simulatedPhotoFile;
-
+  txtCam.innerText = fileName;
   preview.style.display = "flex";
-  previewFilename.innerText = simulatedPhotoFile;
-  previewImg.src = simulatedPhotoSrc;
+  previewFilename.innerText = fileName;
+  previewImg.src = src;
+}
+
+function setupCameraCapture() {
+  const cameraInput = document.getElementById("portal-camera-input");
+  const btnSnap = document.getElementById("btn-camera-snap");
+  const btnCancel = document.getElementById("btn-camera-cancel");
+
+  if (cameraInput) {
+    cameraInput.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      showPhotoPreview(URL.createObjectURL(file), file.name);
+      e.target.value = "";
+    });
+  }
+  if (btnSnap) btnSnap.addEventListener("click", capturePhotoFromCamera);
+  if (btnCancel) btnCancel.addEventListener("click", closeCameraModal);
 }
 
 function triggerLocationGpsLock() {
   const label = document.getElementById("gps-status-label");
   const dropState = document.getElementById("portal-state-select");
   const transMap = translations[currentLanguage] || translations.en;
+  const btnGps = document.getElementById("btn-enable-gps");
 
-  // Pick state (default Tamil Nadu when sharing GPS in demo)
-  const state = dropState.value || "Tamil Nadu";
-  const gpsInfo = stateGpsData[state] || stateGpsData["Tamil Nadu"];
+  label.innerText = transMap.gps_loading || "Finding your location...";
+  label.style.color = "#818cf8";
+  if (btnGps) btnGps.disabled = true;
 
-  label.innerText = `${transMap.gps_enabled || "Location data: Active"} (${gpsInfo.city}, ${gpsInfo.code} - ${gpsInfo.gps})`;
-  label.style.color = "#10b981";
-  label.style.fontWeight = "600";
+  if (!navigator.geolocation) {
+    label.innerText = transMap.gps_error || "Geolocation not supported.";
+    label.style.color = "#f87171";
+    if (btnGps) btnGps.disabled = false;
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const { latitude, longitude } = position.coords;
+      detectedLocation = { latitude, longitude };
+
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+          { headers: { "Accept-Language": "en" } }
+        );
+        const data = await res.json();
+        const address = data.address || {};
+        const stateName = address.state || address.region || "";
+        const city = address.city || address.town || address.village || address.county || "Your area";
+
+        const matchedState = matchStateFromName(stateName);
+        if (matchedState && dropState) {
+          dropState.value = matchedState;
+        }
+
+        const gpsText = `${city} (${latitude.toFixed(4)}°, ${longitude.toFixed(4)}°)`;
+        label.innerText = `${transMap.gps_enabled || "Location found"}: ${gpsText}`;
+        label.style.color = "#10b981";
+        label.style.fontWeight = "600";
+      } catch {
+        label.innerText = `${transMap.gps_enabled || "Location found"} (${latitude.toFixed(4)}°, ${longitude.toFixed(4)}°)`;
+        label.style.color = "#10b981";
+      }
+      if (btnGps) btnGps.disabled = false;
+    },
+    () => {
+      label.innerText = transMap.gps_error || "Could not find location. Please select your state below.";
+      label.style.color = "#f87171";
+      if (btnGps) btnGps.disabled = false;
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+  );
+}
+
+function matchStateFromName(name) {
+  if (!name) return null;
+  const lower = name.toLowerCase();
+  const states = ["Tamil Nadu", "Karnataka", "Maharashtra", "Uttar Pradesh", "West Bengal"];
+  for (const state of states) {
+    if (lower.includes(state.toLowerCase()) || state.toLowerCase().includes(lower)) {
+      return state;
+    }
+  }
+  if (lower.includes("tamil") || lower.includes("chennai")) return "Tamil Nadu";
+  if (lower.includes("karnataka") || lower.includes("bengaluru") || lower.includes("bangalore")) return "Karnataka";
+  if (lower.includes("maharashtra") || lower.includes("mumbai")) return "Maharashtra";
+  if (lower.includes("uttar") || lower.includes("lucknow")) return "Uttar Pradesh";
+  if (lower.includes("bengal") || lower.includes("kolkata")) return "West Bengal";
+  return null;
 }
 
 // 6. Citizen Portal Actions
@@ -1673,16 +1865,23 @@ function setupCitizenPortalActions() {
 }
 
 function startVoiceRecording() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert("Voice typing is not supported in this browser. Please type your problem instead.");
+    return;
+  }
+
   isRecording = true;
   const slotMic = document.getElementById("slot-mic-record");
   const txtMic = document.getElementById("txt-mic-status");
   const timerBar = document.getElementById("record-timer-bar");
   const timerClock = document.getElementById("record-timer-clock");
+  const textarea = document.getElementById("portal-feedback-text");
+  const transMap = translations[currentLanguage] || translations.en;
 
   slotMic.classList.add("recording");
-  txtMic.innerText = "RECORDING ACTIVE";
+  txtMic.innerText = transMap.recording_active || "Listening...";
   timerBar.style.display = "flex";
-  
   recordSeconds = 0;
   timerClock.innerText = "00:00";
 
@@ -1692,31 +1891,66 @@ function startVoiceRecording() {
     const secs = (recordSeconds % 60).toString().padStart(2, "0");
     timerClock.innerText = `${mins}:${secs}`;
   }, 1000);
+
+  speechRecognition = new SpeechRecognition();
+  speechRecognition.lang = speechLangMap[currentLanguage] || "en-IN";
+  speechRecognition.continuous = true;
+  speechRecognition.interimResults = true;
+
+  let finalTranscript = textarea.value ? textarea.value + " " : "";
+
+  speechRecognition.onresult = (event) => {
+    let interim = "";
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        finalTranscript += transcript + " ";
+      } else {
+        interim += transcript;
+      }
+    }
+    textarea.value = (finalTranscript + interim).trim();
+  };
+
+  speechRecognition.onerror = () => {
+    stopVoiceRecording(false);
+  };
+
+  speechRecognition.start();
 }
 
 function stopVoiceRecording(shouldTranscribe) {
   isRecording = false;
   clearInterval(recordTimerInterval);
-  
+
+  if (speechRecognition) {
+    try { speechRecognition.stop(); } catch (_) { /* already stopped */ }
+    speechRecognition = null;
+  }
+
   const slotMic = document.getElementById("slot-mic-record");
   const txtMic = document.getElementById("txt-mic-status");
   const timerBar = document.getElementById("record-timer-bar");
+  const transMap = translations[currentLanguage] || translations.en;
 
   slotMic.classList.remove("recording");
   timerBar.style.display = "none";
 
   if (shouldTranscribe) {
-    simulatedVoiceFile = "recorded_voice_note_lock.wav";
-    slotMic.classList.add("has-file");
-    txtMic.innerText = simulatedVoiceFile;
-
-    // Fill feedback text box based on selected language
-    const transcriptText = simulatedTranscripts[currentLanguage] || simulatedTranscripts.en;
-    document.getElementById("portal-feedback-text").value = transcriptText;
+    const textarea = document.getElementById("portal-feedback-text");
+    if (textarea.value.trim()) {
+      simulatedVoiceFile = "voice_input.webm";
+      slotMic.classList.add("has-file");
+      txtMic.innerText = transMap.slot_record_voice || "Tap to Speak";
+    } else {
+      simulatedVoiceFile = null;
+      slotMic.classList.remove("has-file");
+      txtMic.innerText = transMap.slot_record_voice || "Tap to Speak";
+    }
   } else {
     simulatedVoiceFile = null;
     slotMic.classList.remove("has-file");
-    txtMic.innerText = "Tap to Record Voice";
+    txtMic.innerText = transMap.slot_record_voice || "Tap to Speak";
   }
 }
 
@@ -1760,7 +1994,9 @@ function displayCitizenPipelineMetadata(txt, stateName, channelName) {
   outUrgency.style.color = "var(--urgency-high)";
   outUrgency.style.borderColor = "var(--urgency-high)";
 
-  outState.innerText = stateName;
+  outState.innerText = detectedLocation
+    ? `${stateName} (${detectedLocation.latitude.toFixed(2)}°, ${detectedLocation.longitude.toFixed(2)}°)`
+    : stateName;
 
   // Add to submitted suggestions history
   const today = new Date();
@@ -1953,10 +2189,8 @@ function updateRecommendationsTable() {
   if (!activeStateObj) return;
 
   const calculated = activeStateObj.projects.map(proj => {
-    // Normalization of Population Density Impact score
-    // UP has max density 829. TN has 555.
     const stateDensity = activeStateObj.densityVal;
-    const impactScore = (stateDensity / 1029) * 100; // normalized to max density Bengal
+    const impactScore = (stateDensity / 1029) * 100;
 
     let score = (
       (wDemand / sumWeights) * proj.demandBase +
@@ -1965,16 +2199,24 @@ function updateRecommendationsTable() {
       (wCost / sumWeights) * proj.costBase
     );
 
+    // Water & healthcare always rank as high priority
+    if (ESSENTIAL_THEMES.includes(proj.theme)) {
+      score = Math.max(score, 80);
+    }
+
     score = Math.max(0, Math.min(100, score));
 
     return {
       ...proj,
-      priorityScore: Math.round(score)
+      priorityScore: Math.round(score),
+      isEssential: ESSENTIAL_THEMES.includes(proj.theme)
     };
   });
 
-  // Sort descending by calculated priority score
-  calculated.sort((a, b) => b.priorityScore - a.priorityScore);
+  calculated.sort((a, b) => {
+    if (a.isEssential !== b.isEssential) return b.isEssential - a.isEssential;
+    return b.priorityScore - a.priorityScore;
+  });
 
   const tbody = document.getElementById("mp-priority-table-body");
   if (!tbody) return;
@@ -1983,9 +2225,12 @@ function updateRecommendationsTable() {
 
   calculated.forEach((proj, idx) => {
     const row = document.createElement("tr");
+    const essentialBadge = proj.isEssential
+      ? '<span class="priority-badge-essential">Essential</span>'
+      : '';
     row.innerHTML = `
       <td class="rank-col">#${idx + 1}</td>
-      <td><strong>${proj.title}</strong></td>
+      <td><strong>${proj.title}</strong>${essentialBadge}</td>
       <td>${activeStateName}</td>
       <td><span class="badge ${proj.themeClass}">${proj.theme}</span></td>
       <td>${proj.demandBase}/100</td>
@@ -2050,9 +2295,17 @@ function renderExecutiveReportContent() {
       (wImpact / sumWeights) * impactScore -
       (wCost / sumWeights) * proj.costBase
     );
+    if (ESSENTIAL_THEMES.includes(proj.theme)) {
+      score = Math.max(score, 80);
+    }
     score = Math.max(0, Math.min(100, score));
     return { ...proj, priorityScore: Math.round(score) };
-  }).sort((a, b) => b.priorityScore - a.priorityScore);
+  }).sort((a, b) => {
+    const aEss = ESSENTIAL_THEMES.includes(a.theme) ? 1 : 0;
+    const bEss = ESSENTIAL_THEMES.includes(b.theme) ? 1 : 0;
+    if (aEss !== bEss) return bEss - aEss;
+    return b.priorityScore - a.priorityScore;
+  });
 
   let projectRowsHtml = "";
   calculated.forEach((proj, idx) => {
