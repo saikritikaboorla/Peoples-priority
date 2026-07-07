@@ -896,6 +896,69 @@ body {
   margin-top: 12px;
 }
 
+/* Priority ranked list */
+.prl-row {
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 0 14px;
+  padding: 16px 18px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.prl-row.prl-urgent   { background: rgba(239, 68, 68, 0.07);  border-color: rgba(239, 68, 68, 0.18); }
+.prl-row.prl-important{ background: rgba(245, 158, 11, 0.07); border-color: rgba(245, 158, 11, 0.18); }
+.prl-row.prl-low      { background: rgba(148, 163, 184, 0.05);border-color: rgba(148, 163, 184, 0.14); }
+.prl-rank {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  grid-row: 1;
+}
+.prl-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  grid-row: 1;
+}
+.prl-name {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.prl-reason {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.prl-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 4px;
+  grid-row: 1;
+  white-space: nowrap;
+}
+.prl-urgent   .prl-tag { color: #ef4444; background: rgba(239,68,68,0.12); }
+.prl-important .prl-tag{ color: #f59e0b; background: rgba(245,158,11,0.12); }
+.prl-low      .prl-tag { color: #94a3b8; background: rgba(148,163,184,0.10); }
+.prl-detail {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-top: 10px;
+  margin-top: 8px;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
 /* MP priority badges */
 .priority-badge-essential {
   display: inline-block;

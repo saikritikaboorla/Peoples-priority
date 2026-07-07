@@ -2456,6 +2456,8 @@ function setupReportModal() {
   const btnPrint = document.getElementById("btn-print-report");
   const btnDownloadRaw = document.getElementById("btn-download-raw");
 
+  const btnGenerateVis = document.getElementById("btn-generate-executive-report-vis");
+  if (btnGenerateVis) btnGenerateVis.addEventListener("click", () => { modal.style.display = "flex"; renderExecutiveReportContent(); });
   btnGenerate.addEventListener("click", () => {
     modal.style.display = "flex";
     renderExecutiveReportContent();
@@ -2608,74 +2610,48 @@ function updateThemeButtonUI(theme) {
   }
 }
 
-// Render grouped bar chart for citizen project priorities
+// Render priority ranked list (replaces grouped bar chart)
+function mockLlmReason(proj) {
+  const theme = proj.theme;
+  const isHigh = proj.priorityScore >= 75;
+  const isMid = proj.priorityScore >= 50;
+  const reasons = {
+    "Water Supply":       isHigh ? "Many households lack clean drinking water and the situation is getting worse." : isMid ? "Water access is unreliable for a large part of the community." : "Water supply works but could be improved over time.",
+    "Healthcare":         isHigh ? "People are travelling far for basic medical care with no local facility." : isMid ? "The local health centre is understaffed and needs urgent support." : "Healthcare is available but capacity needs gradual improvement.",
+    "Road Infrastructure":isHigh ? "Damaged roads are blocking daily movement and emergency vehicle access." : isMid ? "Road conditions slow down commutes and increase vehicle wear." : "Roads are functional but resurfacing would help in the long run.",
+    "Sanitation":         isHigh ? "Open drainage is causing health hazards for residents across the ward." : isMid ? "Sanitation coverage has gaps that affect daily hygiene for many families." : "Basic sanitation exists but the network needs expansion.",
+    "Education":          isHigh ? "Children are dropping out because the school building is unsafe and overcrowded." : isMid ? "Classrooms are short on teachers and basic learning materials." : "School infrastructure is adequate but modernisation would help.",
+    "Power & Grid":       isHigh ? "Frequent outages are disrupting livelihoods and essential services daily." : isMid ? "Power supply is inconsistent and affects small businesses and homes." : "Electricity is available but reliability needs improvement."
+  };
+  return reasons[theme] || (isHigh ? "This project addresses a critical gap affecting many residents." : isMid ? "This project would meaningfully improve daily life for the community." : "This project is useful but can be scheduled after more urgent needs.");
+}
+
 function updatePriorityBarChart(calculated) {
-  const svg = document.getElementById("priority-bar-chart");
-  if (!svg || !calculated || !calculated.length) return;
+  const listEl = document.getElementById("priority-ranked-list");
+  if (!listEl || !calculated || !calculated.length) return;
 
-  const isLight = document.documentElement.getAttribute("data-theme") === "light";
-  const axisColor = isLight ? "#64748b" : "#94a3b8";
-  const gridColor = isLight ? "rgba(15, 23, 42, 0.08)" : "rgba(255, 255, 255, 0.06)";
-  const labelColor = isLight ? "#334155" : "#cbd5e1";
-
-  const projects = calculated.slice(0, 5);
-  const chartLeft = 52;
-  const chartRight = 500;
-  const chartTop = 24;
-  const chartBottom = 210;
-  const chartHeight = chartBottom - chartTop;
-  const groupWidth = (chartRight - chartLeft) / projects.length;
-  const barWidth = Math.min(14, groupWidth / 5);
-  const gap = 4;
-
-  function yPos(value) {
-    return chartBottom - (Math.max(0, Math.min(100, value)) / 100) * chartHeight;
-  }
-
-  function shortenTitle(title) {
-    const words = title.split(" ");
-    if (words.length <= 3) return title;
-    return words.slice(0, 3).join(" ") + "…";
-  }
-
-  let svgHtml = "";
-
-  [0, 25, 50, 75, 100].forEach(function(tick) {
-    const y = yPos(tick);
-    svgHtml += `<line x1="${chartLeft}" y1="${y}" x2="${chartRight}" y2="${y}" stroke="${gridColor}" stroke-width="1"></line>`;
-    svgHtml += `<text x="${chartLeft - 8}" y="${y + 3}" fill="${axisColor}" font-size="9" text-anchor="end">${tick}</text>`;
-  });
-
-  svgHtml += `<line x1="${chartLeft}" y1="${chartTop}" x2="${chartLeft}" y2="${chartBottom}" stroke="${gridColor}" stroke-width="1.5"></line>`;
-  svgHtml += `<line x1="${chartLeft}" y1="${chartBottom}" x2="${chartRight}" y2="${chartBottom}" stroke="${gridColor}" stroke-width="1.5"></line>`;
-
-  svgHtml += `<text x="14" y="${(chartTop + chartBottom) / 2}" fill="${axisColor}" font-size="9" font-weight="600" transform="rotate(-90 14 ${(chartTop + chartBottom) / 2})" text-anchor="middle">Priority Metrics (0–100)</text>`;
-  svgHtml += `<text x="${(chartLeft + chartRight) / 2}" y="252" fill="${axisColor}" font-size="9" font-weight="600" text-anchor="middle">Ranked Citizen Priority Projects</text>`;
-
-  const metrics = [
-    { key: "demandBase", color: "#0ea5e9", label: "Demand" },
-    { key: "gapBase", color: "#f97316", label: "Gap" },
-    { key: "priorityScore", color: "#6366f1", label: "Score" }
-  ];
-
-  projects.forEach(function(proj, idx) {
-    const groupCenter = chartLeft + groupWidth * idx + groupWidth / 2;
-    const groupStart = groupCenter - ((barWidth * 3) + (gap * 2)) / 2;
-
-    metrics.forEach(function(metric, mIdx) {
-      const value = proj[metric.key];
-      const x = groupStart + mIdx * (barWidth + gap);
-      const y = yPos(value);
-      const height = chartBottom - y;
-      svgHtml += `<rect x="${x}" y="${y}" width="${barWidth}" height="${height}" rx="2" fill="${metric.color}" opacity="0.88"><title>${proj.title} — ${metric.label}: ${value}/100</title></rect>`;
-      svgHtml += `<text x="${x + barWidth / 2}" y="${y - 4}" fill="${labelColor}" font-size="7" font-weight="700" text-anchor="middle">${value}</text>`;
-    });
-
-    const rankLabel = "#" + (idx + 1);
-    svgHtml += `<text x="${groupCenter}" y="${chartBottom + 14}" fill="${labelColor}" font-size="8" font-weight="700" text-anchor="middle">${rankLabel}</text>`;
-    svgHtml += `<text x="${groupCenter}" y="${chartBottom + 26}" fill="${axisColor}" font-size="7" text-anchor="middle">${shortenTitle(proj.title)}</text>`;
-    svgHtml += `<text x="${groupCenter}" y="${chartBottom + 36}" fill="${axisColor}" font-size="6.5" text-anchor="middle">${proj.theme}</text>`;
-  });
-
-  svg.innerHTML = svgHtml;
+  listEl.innerHTML = calculated.map((proj, idx) => {
+    const score = proj.priorityScore;
+    const isHigh = score >= 75;
+    const isMid  = score >= 50;
+    const tier   = isHigh ? { label: "Act now",   cls: "prl-urgent"   }
+                 : isMid  ? { label: "Plan soon",  cls: "prl-important"}
+                 :          { label: "Can wait",   cls: "prl-low"      };
+    const reason = mockLlmReason(proj);
+    const detailId = "prl-detail-" + idx;
+    return `<div class="prl-row ${tier.cls}" onclick="var d=document.getElementById('${detailId}');d.style.display=d.style.display==='block'?'none':'block'">
+      <span class="prl-rank">#${idx + 1}</span>
+      <div class="prl-main">
+        <span class="prl-name">${proj.title}</span>
+        <span class="prl-reason">${reason}</span>
+      </div>
+      <span class="prl-tag">${tier.label}</span>
+      <div id="${detailId}" class="prl-detail" style="display:none;">
+        <span>Citizen demand: ${proj.demandBase}/100</span>
+        <span>Infrastructure gap: ${proj.gapBase}/100</span>
+        <span>Budget cost: ${proj.costText}</span>
+        <span>Priority score: ${score}/100</span>
+      </div>
+    </div>`;
+  }).join("");
 }

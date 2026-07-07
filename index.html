@@ -647,115 +647,66 @@
           </div>
         </div>
 
-        <div class="weights-panel-grid" style="display: grid; grid-template-columns: 1.3fr 1.1fr; gap: 20px; margin-bottom: 24px;">
-          <!-- Prioritization Sliders Panel -->
-          <div class="glass-panel weights-panel" style="margin-bottom: 0;">
-            <div class="panel-header">
-              <h3 data-i18n="weights_heading">Prioritization Mechanics Weights Settings</h3>
-              <p data-i18n="weights_desc">Modify sliders to calculate composite priority rankings for public works in the active state.</p>
+        <div class="weights-panel-grid" style="display: grid; grid-template-columns: 1fr 260px; gap: 20px; margin-bottom: 24px; align-items: start;">
+          <!-- Priority ranked list — center/main column -->
+          <div class="glass-panel" style="margin-bottom:0;">
+            <div class="panel-header" style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+              <h3>Recommended projects & priority rankings</h3>
+              <button class="btn-secondary" id="btn-generate-executive-report-vis"><i class="fa-solid fa-file-pdf"></i> <span data-i18n="btn_report">Generate executive MP report</span></button>
             </div>
-            
-            <div class="weights-grid">
-              <div class="weight-control-card">
-                <div class="weight-meta">
-                  <span class="weight-title" data-i18n="w_demand">Citizen Demand Weight</span>
-                  <span class="weight-val" id="mp-w-demand-label">52%</span>
-                </div>
-                <div class="slider-wrapper">
-                  <input type="range" id="mp-w-demand" min="0" max="100" value="52">
-                </div>
-                <p class="slider-desc" data-i18n="desc_w_demand">Prioritize based on volume and urgency of incoming submissions.</p>
-              </div>
-              
-              <div class="weight-control-card">
-                <div class="weight-meta">
-                  <span class="weight-title" data-i18n="w_gap">Infrastructure Gap Weight</span>
-                  <span class="weight-val" id="mp-w-gap-label">39%</span>
-                </div>
-                <div class="slider-wrapper">
-                  <input type="range" id="mp-w-gap" min="0" max="100" value="39">
-                </div>
-                <p class="slider-desc" data-i18n="desc_w_gap">Prioritize projects in wards with poor literacy, high distance to school, or low water index.</p>
-              </div>
-              
-              <div class="weight-control-card">
-                <div class="weight-meta">
-                  <span class="weight-title" data-i18n="w_impact">Population Impact Weight</span>
-                  <span class="weight-val" id="mp-w-impact-label">43%</span>
-                </div>
-                <div class="slider-wrapper">
-                  <input type="range" id="mp-w-impact" min="0" max="100" value="43">
-                </div>
-                <p class="slider-desc" data-i18n="desc_w_impact">Prioritize projects that benefit the largest absolute population density.</p>
-              </div>
-              
-              <div class="weight-control-card">
-                <div class="weight-meta">
-                  <span class="weight-title" data-i18n="w_cost">Cost / Budget Factor</span>
-                  <span class="weight-val" id="mp-w-cost-label">28%</span>
-                </div>
-                <div class="slider-wrapper">
-                  <input type="range" id="mp-w-cost" min="0" max="100" value="28">
-                </div>
-                <p class="slider-desc" data-i18n="desc_w_cost">Subtracted weight. Lower cost projects score higher to yield better cost efficiency.</p>
-              </div>
-            </div>
-            <div style="display:flex; justify-content: flex-end;">
-              <button class="btn-reset" id="btn-reset-mp-sliders"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_reset_weights">Reset Weights</span></button>
-            </div>
+            <div id="priority-ranked-list"></div>
           </div>
 
-          <!-- Citizen Priority Bar Chart Panel -->
-          <div class="glass-panel chart-panel priority-chart-panel">
-            <div class="panel-header chart-panel-header">
-              <h3><i class="fa-solid fa-chart-column"></i> Citizen Priority Analysis</h3>
-              <p class="form-hint">Citizen demand, infrastructure gap, and composite priority score for each ranked project.</p>
+          <!-- Prioritization Sliders Panel — compact top-right -->
+          <div class="glass-panel weights-panel" style="margin-bottom: 0; font-size: 0.78rem;">
+            <div class="panel-header" style="margin-bottom:10px;">
+              <h3 style="font-size:0.82rem;" data-i18n="weights_heading">Weight settings</h3>
             </div>
 
-            <div class="priority-chart-wrapper">
-              <svg id="priority-bar-chart" viewBox="0 0 520 280" width="100%" height="100%" aria-label="Citizen priority bar chart"></svg>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                  <span class="weight-title" style="font-size:0.72rem;" data-i18n="w_demand">Citizen demand</span>
+                  <span class="weight-val" style="font-size:0.72rem;" id="mp-w-demand-label">52%</span>
+                </div>
+                <input type="range" id="mp-w-demand" min="0" max="100" value="52">
+              </div>
+
+              <div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                  <span class="weight-title" style="font-size:0.72rem;" data-i18n="w_gap">Infra gap</span>
+                  <span class="weight-val" style="font-size:0.72rem;" id="mp-w-gap-label">39%</span>
+                </div>
+                <input type="range" id="mp-w-gap" min="0" max="100" value="39">
+              </div>
+
+              <div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                  <span class="weight-title" style="font-size:0.72rem;" data-i18n="w_impact">Population impact</span>
+                  <span class="weight-val" style="font-size:0.72rem;" id="mp-w-impact-label">43%</span>
+                </div>
+                <input type="range" id="mp-w-impact" min="0" max="100" value="43">
+              </div>
+
+              <div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                  <span class="weight-title" style="font-size:0.72rem;" data-i18n="w_cost">Cost factor</span>
+                  <span class="weight-val" style="font-size:0.72rem;" id="mp-w-cost-label">28%</span>
+                </div>
+                <input type="range" id="mp-w-cost" min="0" max="100" value="28">
+              </div>
             </div>
 
-            <div class="priority-chart-legend">
-              <span class="priority-legend-item"><i class="priority-legend-swatch demand"></i> Citizen Demand</span>
-              <span class="priority-legend-item"><i class="priority-legend-swatch gap"></i> Infrastructure Gap</span>
-              <span class="priority-legend-item"><i class="priority-legend-swatch score"></i> Priority Score</span>
-            </div>
-
-            <div class="priority-chart-footnote">
-              Y-axis: priority metrics (0–100) · X-axis: ranked citizen projects for the active constituency
+            <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+              <button class="btn-reset" id="btn-reset-mp-sliders" style="font-size:0.72rem; padding:5px 10px;"><i class="fa-solid fa-rotate-left"></i> <span data-i18n="btn_reset_weights">Reset</span></button>
             </div>
           </div>
         </div>
 
-        <!-- Table of priorities -->
-        <div class="glass-panel">
-          <div class="table-panel-header">
-            <h3 data-i18n="priority_ranks_heading">Recommended Projects & Infrastructure Priority Rankings</h3>
-            <button class="btn-secondary" id="btn-generate-executive-report">
-              <i class="fa-solid fa-file-pdf"></i> <span data-i18n="btn_report">Generate Executive MP Report</span>
-            </button>
-          </div>
-
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th style="width: 80px;" data-i18n="th_rank">Rank</th>
-                  <th data-i18n="th_project">Project Proposal</th>
-                  <th data-i18n="th_location">Target Ward</th>
-                  <th data-i18n="th_theme">Theme</th>
-                  <th data-i18n="th_demand">Citizen Demand</th>
-                  <th data-i18n="th_gap">Infra Gap</th>
-                  <th data-i18n="th_cost">Budget Cost</th>
-                  <th data-i18n="th_priority">Priority Score</th>
-                </tr>
-              </thead>
-              <tbody id="mp-priority-table-body">
-                <!-- dynamic projects loaded by state selection -->
-              </tbody>
-            </table>
-          </div>
+        <!-- Hidden table kept for executive report compatibility -->
+        <div style="display:none;">
+          <button id="btn-generate-executive-report"></button>
+          <table><tbody id="mp-priority-table-body"></tbody></table>
         </div>
       </section>
 
