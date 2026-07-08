@@ -2476,6 +2476,29 @@ h1, h2, h3, h4, h5, h6 {
   fill: var(--text-main) !important;
 }
 
+/* --- Desktop Default Styles for AI Sandbox Tags --- */
+.tags-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.tag-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.tag-btn:hover, .tag-btn.active {
+  background: rgba(99, 102, 241, 0.15);
+  color: #fff;
+  border-color: var(--accent-color);
+}
+
 /* --- Desktop Default for Form Section Cards --- */
 .form-section-card {
   display: contents; /* Behaves exactly as before on desktop */
@@ -2834,5 +2857,151 @@ h1, h2, h3, h4, h5, h6 {
   .role-card .role-desc {
     font-size: 0.72rem !important;
     text-align: left !important;
+  }
+
+  /* --- MP Dashboard & Analytics --- */
+  .kpi-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  
+  .kpi-card {
+    padding: 12px !important;
+  }
+
+  .kpi-value {
+    font-size: 1.5rem !important;
+  }
+  
+  .kpi-pill {
+    font-size: 0.65rem !important;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .leaflet-map-container {
+    height: 280px !important;
+  }
+
+  .map-controls {
+    width: 100% !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    display: flex !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 4px !important;
+    gap: 4px !important;
+  }
+  
+  .map-controls::-webkit-scrollbar {
+    display: none;
+  }
+
+  .map-control-btn {
+    flex: 0 0 auto !important;
+    padding: 6px 10px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .panel-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .panel-header h3 {
+    font-size: 1rem !important;
+  }
+
+  .ward-header {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .severity-labels {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    font-size: 0.72rem !important;
+  }
+
+  /* --- MP AI Sandbox --- */
+  .sandbox-layout {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .tags-cloud {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    margin-top: 8px !important;
+  }
+
+  .tag-btn {
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 8px 12px !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* --- MP Project Priorities --- */
+  .weights-panel-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Inputs and range sliders touch areas */
+  input[type="range"] {
+    height: 44px !important;
+  }
+
+  .prl-row {
+    padding: 12px 10px !important;
+    gap: 0 8px !important;
+    grid-template-columns: 24px 1fr auto !important;
+  }
+
+  .prl-name {
+    font-size: 0.85rem !important;
+  }
+
+  .prl-reason {
+    font-size: 0.7rem !important;
+  }
+
+  .prl-tag {
+    font-size: 0.62rem !important;
+    padding: 2px 6px !important;
+  }
+
+  /* --- Shared Architecture --- */
+  .arch-card-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .arch-diagram-wrapper svg {
+    height: auto !important;
+  }
+
+  /* --- Modals and Permission Cards --- */
+  .permission-prompt-card {
+    width: 92% !important;
+    padding: 20px !important;
+  }
+
+  .modal-content {
+    padding: 16px !important;
+    width: 94% !important;
   }
 }
