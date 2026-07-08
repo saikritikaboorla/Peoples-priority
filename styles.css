@@ -2583,7 +2583,8 @@ h1, h2, h3, h4, h5, h6 {
 
   /* Main container switches to single-column app layout */
   .app-container {
-    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
     height: 100vh !important;
     width: 100vw !important;
     overflow: hidden !important;
