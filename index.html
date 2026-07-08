@@ -90,6 +90,17 @@
   <!-- Main Application Container -->
   <div class="app-container" id="app-wrapper" style="display: none;">
     
+    <!-- Demo Mode Banner - Dismissible info banner -->
+    <div class="demo-mode-banner" id="demo-banner">
+      <div class="demo-banner-content">
+        <i class="fa-solid fa-circle-info"></i>
+        <span>Demo Mode: AI processing is simulated for demonstration purposes. No real data is stored or processed.</span>
+        <button class="demo-banner-close" id="demo-banner-close" aria-label="Close demo banner">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+    
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
       <div class="logo-section">
@@ -258,17 +269,22 @@
             <div class="form-group">
               <label data-i18n="lbl_attachments">Or use voice / photo</label>
               <div class="attachment-slots">
-                <div class="upload-slot upload-slot-friendly" id="slot-mic-record">
+                <div class="upload-slot upload-slot-friendly" id="slot-mic-record" role="button" tabindex="0" aria-label="Record voice message">
                   <div class="record-pulse-ring" id="mic-pulse-ring"></div>
                   <i class="fa-solid fa-microphone" id="mic-icon-graphic"></i>
                   <span id="txt-mic-status" data-i18n="slot_record_voice">Tap to Speak</span>
                 </div>
-                <div class="upload-slot upload-slot-friendly" id="slot-camera-upload">
+                <div class="upload-slot upload-slot-friendly" id="slot-camera-upload" role="button" tabindex="0" aria-label="Take photo with camera">
                   <i class="fa-solid fa-camera"></i>
                   <span id="txt-cam-status" data-i18n="slot_upload_photo">Take a Photo</span>
                 </div>
+                <div class="upload-slot upload-slot-friendly" id="slot-file-upload" role="button" tabindex="0" aria-label="Upload photo from files">
+                  <i class="fa-solid fa-image"></i>
+                  <span id="txt-file-status">Choose from Files</span>
+                </div>
               </div>
               <input type="file" id="portal-camera-input" accept="image/*" capture="environment" style="display:none;">
+              <input type="file" id="portal-file-input" accept="image/*" style="display:none;">
             </div>
 
             <!-- Simulated live recording timer or indicators -->
@@ -606,23 +622,20 @@
               </div>
             </div>
 
-            <!-- Topic match and sentiment cards -->
+            <!-- Topic match and sentiment cards - Simplified with color-coded tags -->
             <div class="glass-panel result-card">
               <div class="result-card-header" data-i18n="topic_class">Topic Classification</div>
-              <div class="sandbox-bar-wrapper">
-                <div class="sandbox-bar-header">
-                  <span id="sandbox-extracted-topic">Water Supply</span>
-                  <span class="stat-val" id="sandbox-extracted-topic-score">98% match</span>
-                </div>
-                <div class="sandbox-bar-bg">
-                  <div class="sandbox-bar-fill" id="sandbox-extracted-topic-fill" style="width: 98%;"></div>
-                </div>
-              </div>
+              <div class="sandbox-simple-label">Detected Topic:</div>
+              <div class="sandbox-simple-value" id="sandbox-extracted-topic">Water Supply</div>
+              <div class="sandbox-simple-label">Confidence:</div>
+              <span class="sandbox-tag high" id="sandbox-extracted-topic-score">98% match</span>
             </div>
 
-            <!-- Sentiment scale -->
+            <!-- Sentiment scale - Simplified with color-coded tag -->
             <div class="glass-panel result-card">
               <div class="result-card-header" data-i18n="sentiment_analysis">Sentiment & Severity Index</div>
+              <div class="sandbox-simple-label">Sentiment:</div>
+              <span class="sandbox-tag critical" id="sandbox-sentiment-label">Negative (Urgent)</span>
               <div class="sentiment-bar">
                 <div class="sentiment-marker" id="sandbox-sentiment-marker-bubble" style="left: 22%;"></div>
               </div>

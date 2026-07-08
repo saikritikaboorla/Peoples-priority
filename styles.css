@@ -220,6 +220,54 @@ body {
   overflow: hidden;
 }
 
+/* Demo Mode Banner */
+.demo-mode-banner {
+  grid-column: 1 / -1;
+  background: rgba(99, 102, 241, 0.1);
+  border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+  padding: 12px 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.demo-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  max-width: 1200px;
+  width: 100%;
+}
+
+.demo-banner-content i {
+  color: #818cf8;
+  font-size: 1rem;
+}
+
+.demo-banner-content span {
+  flex: 1;
+}
+
+.demo-banner-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.demo-banner-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
 /* Sidebar Styling */
 .sidebar {
   background-color: var(--bg-sidebar);
@@ -1080,7 +1128,7 @@ select:focus, textarea:focus, input[type="text"]:focus {
 /* Upload Slots Grid */
 .attachment-slots {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 16px;
 }
@@ -1561,6 +1609,54 @@ tr:hover {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* Simplified color-coded tags for sandbox output */
+.sandbox-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+
+.sandbox-tag.critical {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.sandbox-tag.high {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.sandbox-tag.medium {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.sandbox-tag.low {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.sandbox-simple-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.sandbox-simple-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 12px;
 }
 
 .result-card {
@@ -2181,19 +2277,19 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 1rem;
 }
 
-/* Light Theme Variables */
+/* Light Theme Variables - Enhanced contrast for better readability */
 [data-theme="light"] {
   --bg-main: #f8fafc;
   --bg-sidebar: #f1f5f9;
-  --bg-card: rgba(255, 255, 255, 0.9);
-  --border-color: rgba(15, 23, 42, 0.08);
-  --border-hover: rgba(15, 23, 42, 0.15);
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --border-color: rgba(15, 23, 42, 0.12);
+  --border-hover: rgba(15, 23, 42, 0.2);
   
   --text-main: #0f172a;
-  --text-muted: #334155;
-  --text-dim: #64748b;
+  --text-muted: #1e293b;
+  --text-dim: #475569;
   
-  --accent-glow: rgba(99, 102, 241, 0.12);
+  --accent-glow: rgba(99, 102, 241, 0.15);
 }
 
 /* Specific light theme style overrides to keep things clean and visible */
@@ -2378,4 +2474,173 @@ h1, h2, h3, h4, h5, h6 {
 
 [data-theme="light"] #chart-dots-group text {
   fill: var(--text-main) !important;
+}
+
+/* Mobile Responsive for Citizen Submission Page (320-430px) */
+@media (max-width: 430px) {
+  .app-container {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+
+  .main-content {
+    padding: 12px;
+  }
+
+  .page-header {
+    padding: 12px 0;
+  }
+
+  .page-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .page-header p {
+    font-size: 0.85rem;
+  }
+
+  /* Citizen Portal Form Mobile Adjustments */
+  .citizen-portal-form {
+    padding: 16px;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+  }
+
+  .form-hint {
+    font-size: 0.75rem;
+    margin-bottom: 8px;
+  }
+
+  textarea {
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+
+  select {
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+
+  /* Upload slots for mobile */
+  .attachment-slots {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .upload-slot {
+    height: 60px;
+    font-size: 0.85rem;
+  }
+
+  .upload-slot i {
+    font-size: 1.25rem;
+  }
+
+  /* Buttons mobile sizing */
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 0.95rem;
+  }
+
+  /* GPS button mobile */
+  .gps-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.85rem;
+  }
+
+  /* Photo preview mobile */
+  .portal-photo-preview {
+    margin: 12px 0;
+  }
+
+  /* Pipeline tracker mobile */
+  .pipeline-tracker {
+    padding: 12px;
+  }
+
+  .step-card {
+    padding: 10px;
+  }
+
+  .step-text h5 {
+    font-size: 0.85rem;
+  }
+
+  .step-text p {
+    font-size: 0.75rem;
+  }
+
+  /* Metadata output mobile */
+  .metadata-output {
+    padding: 12px;
+  }
+
+  .meta-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .meta-lbl {
+    font-size: 0.75rem;
+  }
+
+  .meta-val {
+    font-size: 0.85rem;
+  }
+
+  /* Demo banner mobile */
+  .demo-mode-banner {
+    padding: 10px 16px;
+  }
+
+  .demo-banner-content {
+    font-size: 0.75rem;
+    gap: 8px;
+  }
+
+  .demo-banner-close {
+    padding: 4px 6px;
+  }
+
+  /* Fallback message banner mobile */
+  #fallback-message-banner {
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    top: 70px;
+  }
+}
+
+/* Extra small mobile (320px) */
+@media (max-width: 320px) {
+  .main-content {
+    padding: 8px;
+  }
+
+  .citizen-portal-form {
+    padding: 12px;
+  }
+
+  .upload-slot {
+    height: 50px;
+    font-size: 0.8rem;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 12px 16px;
+    font-size: 0.85rem;
+  }
 }

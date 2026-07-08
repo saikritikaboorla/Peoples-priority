@@ -1182,24 +1182,117 @@ const simulatedTranscripts = {
 };
 
 // Array of submitted feedback (initialized with mock values for Citizen Portal History)
+// Added comprehensive seed data with 10 submissions across different languages, themes, and severity levels
 let userSubmissions = [
   {
-    date: "2026-07-05",
+    date: "2026-07-01",
     state: "Tamil Nadu",
     text: "Potholes on Chennai bypass road near school crossing causing minor bicycle slips.",
+    originalText: "Potholes on Chennai bypass road near school crossing causing minor bicycle slips.",
+    translation: "Potholes on Chennai bypass road near school crossing causing minor bicycle slips.",
     theme: "Road Infrastructure",
     themeClass: "road",
     urgency: "Medium",
     status: "Processed & Queued"
   },
   {
-    date: "2026-07-06",
+    date: "2026-07-02",
     state: "Tamil Nadu",
     text: "Clogged storm drains in Salem ward office lane causing street flooding during rainfall.",
+    originalText: "Clogged storm drains in Salem ward office lane causing street flooding during rainfall.",
+    translation: "Clogged storm drains in Salem ward office lane causing street flooding during rainfall.",
     theme: "Sanitation",
     themeClass: "sanitation",
     urgency: "High",
     status: "MP Reviewed"
+  },
+  {
+    date: "2026-07-03",
+    state: "Karnataka",
+    text: "No clean water supply in Bengaluru ward 4 for past 5 days, affecting 200 families.",
+    originalText: "No clean water supply in Bengaluru ward 4 for past 5 days, affecting 200 families.",
+    translation: "No clean water supply in Bengaluru ward 4 for past 5 days, affecting 200 families.",
+    theme: "Water Supply",
+    themeClass: "water",
+    urgency: "Critical",
+    status: "Under Review"
+  },
+  {
+    date: "2026-07-04",
+    state: "Maharashtra",
+    text: "Primary health center in Mumbai suburb lacks doctor and basic medicines.",
+    originalText: "Primary health center in Mumbai suburb lacks doctor and basic medicines.",
+    translation: "Primary health center in Mumbai suburb lacks doctor and basic medicines.",
+    theme: "Healthcare",
+    themeClass: "healthcare",
+    urgency: "High",
+    status: "Processed & Queued"
+  },
+  {
+    date: "2026-07-05",
+    state: "Uttar Pradesh",
+    text: "Government school roof leaking in Varanasi, students unable to attend classes during rain.",
+    originalText: "Government school roof leaking in Varanasi, students unable to attend classes during rain.",
+    translation: "Government school roof leaking in Varanasi, students unable to attend classes during rain.",
+    theme: "Education",
+    themeClass: "education",
+    urgency: "Critical",
+    status: "MP Reviewed"
+  },
+  {
+    date: "2026-07-06",
+    state: "West Bengal",
+    text: "Frequent power outages in Kolkata residential area affecting daily life and studies.",
+    originalText: "Frequent power outages in Kolkata residential area affecting daily life and studies.",
+    translation: "Frequent power outages in Kolkata residential area affecting daily life and studies.",
+    theme: "Power & Grid",
+    themeClass: "power",
+    urgency: "Medium",
+    status: "Processed & Queued"
+  },
+  {
+    date: "2026-07-07",
+    state: "Tamil Nadu",
+    text: "Street lights not working in Madurai residential colony for 2 weeks, safety concern.",
+    originalText: "Street lights not working in Madurai residential colony for 2 weeks, safety concern.",
+    translation: "Street lights not working in Madurai residential colony for 2 weeks, safety concern.",
+    theme: "Road Infrastructure",
+    themeClass: "road",
+    urgency: "Medium",
+    status: "Under Review"
+  },
+  {
+    date: "2026-07-08",
+    state: "Karnataka",
+    text: "Garbage collection irregular in Hubli ward 3, causing bad smell and health issues.",
+    originalText: "Garbage collection irregular in Hubli ward 3, causing bad smell and health issues.",
+    translation: "Garbage collection irregular in Hubli ward 3, causing bad smell and health issues.",
+    theme: "Sanitation",
+    themeClass: "sanitation",
+    urgency: "High",
+    status: "Processed & Queued"
+  },
+  {
+    date: "2026-07-09",
+    state: "Maharashtra",
+    text: "Water pipeline burst in Pune causing water wastage and shortage in nearby areas.",
+    originalText: "Water pipeline burst in Pune causing water wastage and shortage in nearby areas.",
+    translation: "Water pipeline burst in Pune causing water wastage and shortage in nearby areas.",
+    theme: "Water Supply",
+    themeClass: "water",
+    urgency: "Critical",
+    status: "MP Reviewed"
+  },
+  {
+    date: "2026-07-10",
+    state: "Uttar Pradesh",
+    text: "Community center wall cracked in Lucknow, needs immediate repair for safety.",
+    originalText: "Community center wall cracked in Lucknow, needs immediate repair for safety.",
+    translation: "Community center wall cracked in Lucknow, needs immediate repair for safety.",
+    theme: "Road Infrastructure",
+    themeClass: "road",
+    urgency: "High",
+    status: "Under Review"
   }
 ];
 
@@ -1219,6 +1312,8 @@ document.addEventListener("DOMContentLoaded", () => {
   setupRecommendationSliders();
   setupReportModal();
   setupThemeToggle();
+  setupDemoBanner();
+  setupAccessibilityFeatures();
   
   // Set date
   const dateEl = document.getElementById("live-date");
@@ -1626,7 +1721,7 @@ function updateConstituencyMapLegend() {
   }
 }
 
-// 5. Simulated Permissions Handler
+// 5. Simulated Permissions Handler with graceful fallback UI
 function setupHardwarePermissions() {
   // Mic Prompts
   document.getElementById("btn-mic-allow").addEventListener("click", () => {
@@ -1637,7 +1732,8 @@ function setupHardwarePermissions() {
   document.getElementById("btn-mic-deny").addEventListener("click", () => {
     permissions.microphone = false;
     document.getElementById("mic-permission-prompt").style.display = "none";
-    alert("Microphone permission denied. Voice recording simulation aborted.");
+    // Show friendly fallback message
+    showFallbackMessage("Microphone access denied — You can still type your suggestion in the text box below.");
   });
 
   // Cam Prompts
@@ -1649,6 +1745,8 @@ function setupHardwarePermissions() {
   document.getElementById("btn-cam-deny").addEventListener("click", () => {
     permissions.camera = false;
     document.getElementById("cam-permission-prompt").style.display = "none";
+    // Show friendly fallback message
+    showFallbackMessage("Camera access denied — You can still upload a photo from your device files using the 'Choose from Files' option.");
   });
 
   // Location GPS Prompts
@@ -1665,8 +1763,62 @@ function setupHardwarePermissions() {
   document.getElementById("btn-loc-deny").addEventListener("click", () => {
     permissions.location = false;
     document.getElementById("location-permission-prompt").style.display = "none";
-    alert("Location tracking denied. Reverting to default manual state routing.");
+    // Show friendly fallback message
+    showFallbackMessage("Location access denied — Please select your state and constituency manually from the dropdown menus below.");
   });
+}
+
+function showFallbackMessage(message) {
+  // Create or update a fallback message banner
+  let fallbackBanner = document.getElementById("fallback-message-banner");
+  if (!fallbackBanner) {
+    fallbackBanner = document.createElement("div");
+    fallbackBanner.id = "fallback-message-banner";
+    fallbackBanner.style.cssText = `
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      z-index: 1000;
+      max-width: 350px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(8px);
+      animation: slideIn 0.3s ease;
+    `;
+    document.body.appendChild(fallbackBanner);
+    
+    // Add animation keyframes
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  
+  fallbackBanner.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <span>${message}</span>
+      <button onclick="this.parentElement.parentElement.remove()" style="background: transparent; border: none; color: inherit; cursor: pointer; margin-left: auto;">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  `;
+  
+  // Auto-dismiss after 8 seconds
+  setTimeout(() => {
+    if (fallbackBanner && fallbackBanner.parentElement) {
+      fallbackBanner.remove();
+    }
+  }, 8000);
 }
 
 function triggerCameraSnap() {
@@ -1740,8 +1892,33 @@ function showPhotoPreview(src, fileName) {
 
 function setupCameraCapture() {
   const cameraInput = document.getElementById("portal-camera-input");
+  const fileInput = document.getElementById("portal-file-input");
   const btnSnap = document.getElementById("btn-camera-snap");
   const btnCancel = document.getElementById("btn-camera-cancel");
+  const slotCamera = document.getElementById("slot-camera-upload");
+  const slotFile = document.getElementById("slot-file-upload");
+
+  // Camera capture slot
+  if (cameraInput && slotCamera) {
+    slotCamera.addEventListener("click", () => cameraInput.click());
+    slotCamera.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        cameraInput.click();
+      }
+    });
+  }
+
+  // File upload slot
+  if (fileInput && slotFile) {
+    slotFile.addEventListener("click", () => fileInput.click());
+    slotFile.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        fileInput.click();
+      }
+    });
+  }
 
   if (cameraInput) {
     cameraInput.addEventListener("change", (e) => {
@@ -1751,6 +1928,16 @@ function setupCameraCapture() {
       e.target.value = "";
     });
   }
+
+  if (fileInput) {
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      showPhotoPreview(URL.createObjectURL(file), file.name);
+      e.target.value = "";
+    });
+  }
+
   if (btnSnap) btnSnap.addEventListener("click", capturePhotoFromCamera);
   if (btnCancel) btnCancel.addEventListener("click", closeCameraModal);
 }
@@ -2608,6 +2795,131 @@ function updateThemeButtonUI(theme) {
     icon.className = "fa-solid fa-sun";
     text.innerText = "Light Mode";
   }
+}
+
+// Demo Mode Banner - Dismissible functionality
+function setupDemoBanner() {
+  const banner = document.getElementById("demo-banner");
+  const closeBtn = document.getElementById("demo-banner-close");
+  
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      if (banner) {
+        banner.style.display = "none";
+        localStorage.setItem("demoBannerDismissed", "true");
+      }
+    });
+  }
+  
+  // Check if banner was previously dismissed
+  if (banner && localStorage.getItem("demoBannerDismissed") === "true") {
+    banner.style.display = "none";
+  }
+}
+
+// Accessibility Features - Voice cues, keyboard navigation, ARIA labels
+function setupAccessibilityFeatures() {
+  // Add voice cues for text-to-speech
+  addVoiceCues();
+  
+  // Ensure keyboard navigation works for all interactive elements
+  enhanceKeyboardNavigation();
+  
+  // Add ARIA labels where missing
+  enhanceARIALabels();
+  
+  // Ensure minimum touch target sizes
+  enhanceTouchTargets();
+}
+
+function addVoiceCues() {
+  // Add speaker icons next to important text for TTS
+  const importantLabels = document.querySelectorAll('label[data-i18n], .form-hint');
+  importantLabels.forEach(label => {
+    if (!label.querySelector('.voice-cue-icon')) {
+      const speakerIcon = document.createElement('i');
+      speakerIcon.className = 'fa-solid fa-volume-high voice-cue-icon';
+      speakerIcon.style.cssText = 'margin-left: 6px; cursor: pointer; font-size: 0.75rem; color: var(--text-muted); opacity: 0.6;';
+      speakerIcon.setAttribute('aria-label', 'Read text aloud');
+      speakerIcon.setAttribute('role', 'button');
+      speakerIcon.setAttribute('tabindex', '0');
+      speakerIcon.addEventListener('click', () => speakText(label.innerText));
+      speakerIcon.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          speakText(label.innerText);
+        }
+      });
+      label.appendChild(speakerIcon);
+    }
+  });
+}
+
+function speakText(text) {
+  if ('speechSynthesis' in window) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = currentLanguage === 'hi' ? 'hi-IN' : 
+                    currentLanguage === 'ta' ? 'ta-IN' :
+                    currentLanguage === 'te' ? 'te-IN' :
+                    currentLanguage === 'kn' ? 'kn-IN' :
+                    currentLanguage === 'bn' ? 'bn-IN' : 'en-IN';
+    utterance.rate = 0.9;
+    speechSynthesis.speak(utterance);
+  }
+}
+
+function enhanceKeyboardNavigation() {
+  // Ensure all buttons and interactive elements are keyboard accessible
+  const interactiveElements = document.querySelectorAll('button, .upload-slot, .nav-item, .role-card');
+  interactiveElements.forEach(el => {
+    if (!el.hasAttribute('tabindex')) {
+      el.setAttribute('tabindex', '0');
+    }
+    if (!el.hasAttribute('role') && (el.classList.contains('upload-slot') || el.classList.contains('nav-item') || el.classList.contains('role-card'))) {
+      el.setAttribute('role', 'button');
+    }
+  });
+}
+
+function enhanceARIALabels() {
+  // Add ARIA labels to form controls
+  const textareas = document.querySelectorAll('textarea');
+  textareas.forEach(ta => {
+    if (!ta.hasAttribute('aria-label')) {
+      const label = ta.previousElementSibling;
+      if (label && label.tagName === 'LABEL') {
+        ta.setAttribute('aria-label', label.innerText);
+      }
+    }
+  });
+  
+  const selects = document.querySelectorAll('select');
+  selects.forEach(sel => {
+    if (!sel.hasAttribute('aria-label')) {
+      const label = sel.previousElementSibling;
+      if (label && label.tagName === 'LABEL') {
+        sel.setAttribute('aria-label', label.innerText);
+      }
+    }
+  });
+}
+
+function enhanceTouchTargets() {
+  // Ensure minimum touch target size of 44x44px for mobile
+  const style = document.createElement('style');
+  style.textContent = `
+    @media (max-width: 768px) {
+      button, .upload-slot, .nav-item, .role-card, input[type="file"] {
+        min-height: 44px !important;
+        min-width: 44px !important;
+      }
+      .btn-primary, .btn-secondary {
+        min-height: 48px !important;
+        padding: 12px 20px !important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
 }
 
 // Render priority ranked list (replaces grouped bar chart)
