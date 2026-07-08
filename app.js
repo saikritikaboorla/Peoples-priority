@@ -2824,24 +2824,13 @@ function updateThemeButtonUI(theme) {
   }
 }
 
-// Demo Mode Banner - Dismissible functionality
+// Demo Mode Banner - Always visible
 function setupDemoBanner() {
   const banner = document.getElementById("demo-banner");
-  const closeBtn = document.getElementById("demo-banner-close");
-  
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      if (banner) {
-        banner.style.display = "none";
-        localStorage.setItem("demoBannerDismissed", "true");
-      }
-    });
+  if (banner) {
+    banner.style.display = "flex";
   }
-  
-  // Check if banner was previously dismissed
-  if (banner && localStorage.getItem("demoBannerDismissed") === "true") {
-    banner.style.display = "none";
-  }
+  localStorage.removeItem("demoBannerDismissed");
 }
 
 // Accessibility Features - Voice cues, keyboard navigation, ARIA labels

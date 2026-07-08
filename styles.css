@@ -2591,6 +2591,11 @@ h1, h2, h3, h4, h5, h6 {
     position: relative;
   }
 
+  .app-container[style*="display: none"],
+  .app-container[style*="display:none"] {
+    display: none !important;
+  }
+
   /* Collapsible Navigation Drawer */
   .sidebar {
     position: fixed !important;
