@@ -1,122 +1,241 @@
 # People's Priority 🏛️
-    
-    An AI-powered citizen grievance routing and MP decision-support platform designed to convert multi-channel feedback into prioritized, data-driven local infrastructure plans.
-    
-    ---
-    
-    ##  Table of Contents
-    
-    * [Features](#1-features)
-    * [Tech Stack](#2-tech-stack)
-    * [Architecture Overview](#3-architecture-overview)
-    * [Project Structure](#4-project-structure)
-    * [Getting Started](#5-getting-started)
-    * [API Reference](#6-api-reference)
-    * [AI Pipeline](#7-ai-pipeline)
-    * [Team & Tasks](#8-team--tasks)
-    * [Contributing](#9-contributing)
-    
-    ---
-    
-    ## 1. Features
-    
-    * **Multilingual Input & Transcriptions**: Converts local speech notes into text and translates regional Indian dialects using Bhashini.
-    * **Geospatial post-routing**: Uses PostGIS queries to auto-route issues to their respective state constituencies based on geolocation coordinates.
-    * **Tunable Priority Engine**: Sliders allow administrators to balance citizen request volume, baseline census indicators, and budgets to generate priority ranks.
-    * **Infrastructure Image Inspection**: Uses vision models to detect and classify local faults (e.g. road damage, sanitation blocks) from citizen uploads.
-    * **Executive Advisory Reports**: Instantly generates printed PDF reports summarizing constituency needs.
-    
-    ---
-    
-    ## 2. Tech Stack
-    
-    * **Frontend**: HTML5, Vanilla CSS3 (Custom variables, responsive layout, glassmorphic filters), Vanilla JavaScript (ES6+).
-    * **Maps & GIS**: Leaflet.js (Constituency boundaries & hot spots), Inline SVG mapping.
-    * **GIS Database**: PostgreSQL + PostGIS (Coordinate boundary overlays).
-    * **AI Pipelines**: OpenAI Whisper v3 (Speech-to-text), Bhashini API (Translation), Llama 3 (NLP/NER), ResNet-50 (Computer Vision).
-    * **Local Server**: Python 3.
-    
-    ---
-    
-    ## 3. Architecture Overview
-    
-    Citizen feedback enters via Web, WhatsApp, IVR, or SMS. Submissions are translated, geolocation-checked via PostGIS to route to the correct constituency, and stored. MPs select
-  their constituency, apply dynamic weight sliders, and the prioritisation algorithm outputs ranked project works:
-    
-    
-  [Citizen Input: Audio/Text/Image]
-  ↓
-  [AI Translation & Image Analyzer]
-  ↓
-  [PostGIS Coordinates Intersector]
-  ↓
-  [Constituency Database Storage]
-  ↓
-  [MP Priority Scoring Weight Sliders]
-  ↓
-  [Ranked Projects & Executive Reports]
 
-    
-    ---
-    
-    ## 4. Project Structure
-    
-    
-  peoples-priority/
-  ├── data/                    # Geopolitical shapefiles & constituency indexes
-  ├── scripts/                 # Asset builders & geojson compilers
-  ├── app.js                   # Client-side routing, navigation & i18n logic
-  ├── constituency-engine.js   # Calculations, weights & map rendering code
-  ├── index.html               # Multi-portal user interface
-  ├── styles.css               # Core design system & responsive media overrides
-  └── README.md                # System documentation
+An AI-powered citizen feedback and decision-support platform that helps Members of Parliament (MPs) identify, prioritize, and address local development needs using citizen inputs, geospatial intelligence, and data-driven recommendations.
 
-    
-    ---
-    
-    ## 5. Getting Started
-    
-    Follow these steps to run the application locally:
-    
-    1. **Clone the Repo**:
-       ```bash
-       git clone https://github.com/username/peoples-priority.git
-       cd peoples-priority
-    
-  2. Start the Local HTTP Server:
-    python -m http.server 8080
-    
-  3. Launch the Portal:
-  Open http://localhost:8080 in your browser.
-  ──────
-  ## 6. API Reference
+---
 
-   Method                                                    | Endpoint                                                  | Description
-  -----------------------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------
-    POST                                                     |  /api/feedback                                            | Accepts text, audio notes, and photos from citizens.
-    GET                                                      |  /api/feedback                                            | Lists incoming complaints filtered by theme and state.
-    GET                                                      |  /api/geo/heatmap                                         | Generates demand and infrastructure gap hot spot points.
-    GET                                                      |  /api/dashboard/overview                                  | Fetches aggregated KPIs and recent feedback feeds.
-    POST                                                     |  /api/recommendations                                     | Triggers project prioritisation score rankings.
-  ──────
-  ## 7. AI Pipeline
+## Overview
 
-  1. Audio Transcription: Whisper v3 converts regional speech notes to string transcripts.
-  2. Dynamic Translation: Bhashini translates inputs from 6 regional languages (Hindi, Tamil, Telugu, Kannada, Bengali) to English.
-  3. Parameters Extraction: Llama 3 parses named entities (NER), topic category, and severity sentiment index.
-  4. Issue Validation: ResNet-50 inspects citizen photos to verify infrastructure faults.
-  ──────
-  ## 8. Team & Tasks
+People's Priority bridges the gap between citizens and decision-makers by transforming unstructured feedback from multiple channels into actionable development insights.
 
-  • Ingestion Pipeline: Automated channel routing (WhatsApp/SMS/IVR) and device access prompts.
-  • Geospatial Engine: Coordinate overlays and shapefile database setup.
-  • Prioritization Scoring: Tunable slider weight calculations and priority score lists.
-  • Accessibility & UI: Custom mobile drawer menus, 44px tap targets, high color contrast, and automatic iOS zoom overrides.
-  ──────
-  ## 9. Contributing
+The platform enables citizens to submit issues through voice, text, and images while providing MPs with a centralized dashboard to analyze demand patterns, identify infrastructure gaps, and prioritize projects based on measurable community impact.
 
-  1. Fork the Project.
-  2. Create a Feature Branch ( git checkout -b feature/NewFeature ).
-  3. Commit Changes ( git commit -m 'Add NewFeature' ).
-  4. Push to Branch ( git push origin feature/NewFeature ).
-  5. Open a Pull Request.
+---
+
+# Platform Preview
+
+People's Priority provides dedicated interfaces for citizens and decision-makers, ensuring seamless participation, analysis, and development planning.
+
+## 🔐 Login Portal
+
+The login interface provides secure access to different user roles, allowing citizens and representatives to interact with the platform through personalized dashboards.
+
+<p align="center">
+  <img width="1600" height="999" alt="image" src="https://github.com/user-attachments/assets/1b011505-f553-4aa4-bfd7-2114cbbd69fd" />
+
+</p>
+
+---
+
+## 🗣️ Citizen Dashboard
+
+The citizen dashboard enables users to submit local issues through text, voice, and image-based feedback while ensuring their concerns are captured and processed effectively.
+
+<p align="center">
+  <img width="1600" height="999" alt="image" src="https://github.com/user-attachments/assets/0b447af3-ed41-4207-a9cf-9fd40ceb441b" />
+
+</p>
+
+---
+
+## 🏛️ MP Dashboard
+
+The MP dashboard provides constituency-level insights, issue analysis, demand trends, and prioritized recommendations to support evidence-based decision-making.
+
+<p align="center">
+  <img width="1600" height="999" alt="image" src="https://github.com/user-attachments/assets/0a5c637a-518a-4aa4-9645-d92420adaceb" />
+
+</p>
+
+---
+
+# Features
+
+## 🗣️ Multilingual Citizen Feedback
+
+- Accepts voice, text, and image-based submissions.
+- Supports regional language inputs through AI-powered transcription and translation.
+- Enables accessible participation without requiring formal grievance procedures.
+
+## 📍 Geospatial Issue Mapping
+
+- Maps citizen issues based on location.
+- Identifies constituency-level demand hotspots.
+- Connects feedback with administrative boundaries using GIS analysis.
+
+## 🤖 AI-Based Analysis
+
+- Converts voice submissions into structured text.
+- Classifies issues into relevant development categories.
+- Performs sentiment and severity analysis.
+- Analyzes uploaded images to identify infrastructure concerns.
+
+## 📊 Priority Recommendation Engine
+
+Ranks development needs using multiple factors:
+
+- Citizen demand
+- Infrastructure gaps
+- Population impact
+- Budget considerations
+
+## 📄 Executive Reports
+
+Generates summarized reports to support transparent and evidence-based development planning.
+
+---
+
+# Technology Stack
+
+| Layer | Technology |
+|------|------------|
+| Frontend | HTML5, CSS3, JavaScript (ES6+) |
+| Backend | Python |
+| Database & GIS | PostgreSQL + PostGIS |
+| Mapping | Leaflet.js, SVG-based visualization |
+| AI Processing | Speech Recognition, NLP Classification, Computer Vision |
+| Data Processing | Demographic and infrastructure datasets |
+| Server | Python HTTP Server |
+
+---
+
+# System Architecture
+
+The platform follows a pipeline-based architecture where citizen feedback is collected, processed, geographically analyzed, and converted into actionable recommendations.
+
+```text
+Citizen Input
+(Audio / Text / Image)
+          │
+          ▼
+AI Processing Layer
+(Transcription, Translation, Classification)
+          │
+          ▼
+Geospatial Processing
+(Location Mapping & Constituency Routing)
+          │
+          ▼
+Constituency Data Layer
+          │
+          ▼
+Priority Scoring Engine
+          │
+          ▼
+MP Dashboard & Reports
+```
+
+---
+
+# Project Structure
+
+```text
+peoples-priority/
+│
+├── images/
+│   ├── login-page.png
+│   ├── citizen-dashboard.png
+│   └── mp-dashboard.png
+│
+├── data/
+│   └── Geospatial datasets and constituency information
+│
+├── scripts/
+│   └── Data processing and map generation utilities
+│
+├── app.js
+│   └── Application logic and routing
+│
+├── constituency-engine.js
+│   └── Priority calculations and map rendering
+│
+├── index.html
+│   └── Main application interface
+│
+├── styles.css
+│   └── UI design and responsive styling
+│
+└── README.md
+    └── Project documentation
+```
+
+---
+
+
+# AI Processing Pipeline
+
+The platform processes citizen feedback through multiple intelligent stages:
+
+### 1. Speech Processing
+Converts voice submissions into structured text.
+
+### 2. Language Processing
+Translates regional inputs and extracts important information such as:
+- Issue category
+- Location
+- Severity level
+
+### 3. Issue Classification
+Groups similar issues to identify recurring community requirements.
+
+### 4. Image Analysis
+Analyzes uploaded images to detect infrastructure-related problems.
+
+---
+
+# Priority Scoring Model
+
+Development priorities are calculated using multiple factors:
+
+```text
+Priority Score =
+Citizen Demand +
+Infrastructure Gap +
+Population Impact +
+Budget Consideration
+```
+
+This ensures development decisions are based on measurable community needs rather than complaint volume alone.
+
+---
+
+# Future Scope
+
+- Mobile application support
+- Government grievance platform integration
+- Real-time constituency monitoring
+- Predictive development planning
+- Expanded multilingual capabilities
+
+---
+
+# Contributing
+
+Contributions are welcome.
+
+1. Fork the repository.
+2. Create a feature branch:
+
+```bash
+git checkout -b feature/NewFeature
+```
+
+3. Commit changes:
+
+```bash
+git commit -m "Add NewFeature"
+```
+
+4. Push changes:
+
+```bash
+git push origin feature/NewFeature
+```
+
+5. Open a Pull Request.
+
+---
+
+# License
+
+This project is licensed under the MIT License.
