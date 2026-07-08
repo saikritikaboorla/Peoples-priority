@@ -2967,7 +2967,34 @@ function mockLlmReason(proj) {
 
 function updatePriorityBarChart(calculated) {
   const listEl = document.getElementById("priority-ranked-list");
+  const statsEl = document.getElementById("priority-stats-summary");
   if (!listEl || !calculated || !calculated.length) return;
+
+  if (statsEl) {
+    const total = calculated.length;
+    const urgent = calculated.filter(p => p.priorityScore >= 75).length;
+    const important = calculated.filter(p => p.priorityScore >= 50 && p.priorityScore < 75).length;
+    const avgScore = Math.round(calculated.reduce((sum, p) => sum + p.priorityScore, 0) / total);
+
+    statsEl.innerHTML = `
+      <div class="priority-stat-card">
+        <span class="stat-lbl" data-i18n="p_stat_total">Total Recommended</span>
+        <span class="stat-num">${total}</span>
+      </div>
+      <div class="priority-stat-card urgent">
+        <span class="stat-lbl" data-i18n="p_stat_urgent">Act Now (Urgent)</span>
+        <span class="stat-num">${urgent}</span>
+      </div>
+      <div class="priority-stat-card important">
+        <span class="stat-lbl" data-i18n="p_stat_important">Plan Soon (Important)</span>
+        <span class="stat-num">${important}</span>
+      </div>
+      <div class="priority-stat-card avg">
+        <span class="stat-lbl" data-i18n="p_stat_avg">Avg Priority Score</span>
+        <span class="stat-num">${avgScore}/100</span>
+      </div>
+    `;
+  }
 
   listEl.innerHTML = calculated.map((proj, idx) => {
     const score = proj.priorityScore;

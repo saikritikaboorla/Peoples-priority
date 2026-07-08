@@ -388,18 +388,31 @@ body {
 }
 
 .logout-btn {
-  background: transparent;
+  background: #ef4444;
   border: none;
-  color: var(--text-dim);
-  font-size: 1.15rem;
+  color: #ffffff;
+  font-family: var(--font-main);
+  font-size: 0.76rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: background 0.2s ease, transform 0.1s ease;
   margin-left: auto;
+  padding: 8px 12px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   outline: none;
+  white-space: nowrap;
 }
 
 .logout-btn:hover {
-  color: #ef4444;
+  background: #dc2626;
+}
+
+.logout-btn i {
+  font-size: 0.82rem;
+  color: #ffffff;
 }
 
 /* Main Content Area */
@@ -1019,6 +1032,56 @@ body {
   margin-left: 6px;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+}
+
+/* Priority Stats Summary Cards */
+.priority-stats-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.priority-stat-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+
+.priority-stat-card .stat-lbl {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.priority-stat-card .stat-num {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  font-family: var(--font-title);
+}
+
+.priority-stat-card.urgent {
+  border-color: rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.02);
+}
+.priority-stat-card.urgent .stat-num {
+  color: #ef4444;
+}
+
+.priority-stat-card.important {
+  border-color: rgba(245, 158, 11, 0.25);
+  background: rgba(245, 158, 11, 0.02);
+}
+.priority-stat-card.important .stat-num {
+  color: #f59e0b;
 }
 
 .priority-rank-num {
@@ -2823,6 +2886,20 @@ h1, h2, h3, h4, h5, h6 {
   .login-overlay {
     z-index: 100000 !important;
     pointer-events: auto !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    padding: 24px 0 !important;
+    -webkit-overflow-scrolling: touch;
   }
 
   .login-card {
@@ -2830,6 +2907,8 @@ h1, h2, h3, h4, h5, h6 {
     width: 92% !important;
     position: relative !important;
     z-index: 100001 !important;
+    margin-bottom: 24px !important;
+    flex-shrink: 0 !important;
   }
   
   .login-header h2 {
@@ -3020,5 +3099,42 @@ h1, h2, h3, h4, h5, h6 {
   .modal-content {
     padding: 16px !important;
     width: 94% !important;
+  }
+
+  /* --- Mobile Navigation Drawer Footer & Logout button --- */
+  .sidebar-footer {
+    padding: 16px 12px !important;
+    gap: 10px !important;
+    margin-top: auto !important; /* Ensure it is pushed all the way down */
+  }
+
+  .logout-btn {
+    width: auto !important;
+    height: auto !important;
+    min-height: 44px !important;
+    padding: 10px 16px !important;
+    background: #ef4444 !important;
+    border: none !important;
+    color: #ffffff !important;
+    font-size: 0.85rem !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    pointer-events: auto !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+  }
+
+  .logout-btn:hover, .logout-btn:active {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+  }
+
+  /* Mobile Priority Stats Grid */
+  .priority-stats-summary {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
   }
 }
