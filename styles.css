@@ -2908,6 +2908,11 @@ h1, h2, h3, h4, h5, h6 {
     -webkit-overflow-scrolling: touch;
   }
 
+  .login-overlay[style*="display: none"],
+  .login-overlay[style*="display:none"] {
+    display: none !important;
+  }
+
   .login-card {
     padding: 24px !important;
     width: 92% !important;
