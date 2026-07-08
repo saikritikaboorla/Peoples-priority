@@ -2820,9 +2820,16 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   /* Demo Login Screen enhancements */
+  .login-overlay {
+    z-index: 100000 !important;
+    pointer-events: auto !important;
+  }
+
   .login-card {
     padding: 24px !important;
     width: 92% !important;
+    position: relative !important;
+    z-index: 100001 !important;
   }
   
   .login-header h2 {
@@ -2840,6 +2847,7 @@ h1, h2, h3, h4, h5, h6 {
     text-align: left !important;
     padding: 14px 16px !important;
     gap: 16px !important;
+    pointer-events: auto !important;
   }
 
   .role-card i {
@@ -2857,6 +2865,15 @@ h1, h2, h3, h4, h5, h6 {
   .role-card .role-desc {
     font-size: 0.72rem !important;
     text-align: left !important;
+  }
+
+  #btn-login {
+    position: relative !important;
+    z-index: 100002 !important;
+    pointer-events: auto !important;
+    min-height: 48px !important;
+    width: 100% !important;
+    padding: 12px 24px !important;
   }
 
   /* --- MP Dashboard & Analytics --- */
