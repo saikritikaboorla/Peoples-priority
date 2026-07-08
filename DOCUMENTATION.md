@@ -124,14 +124,3 @@ Where:
 * **Weights ($w_1, w_2, w_3, w_4$)**: Tunable sliders summing to 100%.
 
 ---
-
-## 6. How to Run Locally
-
-Start your Python HTTP Server:
-
-```powershell
-python -m http.server 8080
-```
-
-Open your browser and navigate to:
-[http://localhost:8080](http://localhost:8080)
