@@ -89,6 +89,7 @@
 
   <!-- Main Application Container -->
   <div class="app-container" id="app-wrapper" style="display: none;">
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
     
     <!-- Demo Mode Banner - Dismissible info banner -->
     <div class="demo-mode-banner" id="demo-banner">
@@ -159,6 +160,13 @@
       
       <!-- Top header bar (always visible post-login) -->
       <div class="app-header-bar">
+        <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Toggle Navigation">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <div class="mobile-brand">
+          <div class="logo-icon logo-icon-sm">PP</div>
+          <span class="mobile-brand-title">People's Priority</span>
+        </div>
         <div class="header-greeting">
           <span data-i18n="welcome_back">Welcome Back,</span>
           <strong id="greeting-username">Honorable MP</strong>
@@ -201,38 +209,45 @@
               <p data-i18n="cit_form_sub">Use simple words in any language. Tap the mic to speak or camera to show the issue.</p>
             </div>
 
-            <!-- Auto location detection status -->
-            <div class="form-group">
-              <div class="location-box friendly-location-box" id="location-status-container">
-                <button class="btn-secondary btn-friendly" id="btn-enable-gps">
-                  <i class="fa-solid fa-location-crosshairs"></i>
-                  <span data-i18n="gps_enable_btn">Find My Location</span>
-                </button>
-                <div class="location-status-text" id="gps-status-label" data-i18n="gps_disabled">Tap the button above so we know where you are</div>
+            <!-- CARD 1: Location & Constituency Selection -->
+            <div class="form-section-card">
+              <!-- Auto location detection status -->
+              <div class="form-group" style="margin-bottom: 0;">
+                <div class="location-box friendly-location-box" id="location-status-container">
+                  <button class="btn-secondary btn-friendly" id="btn-enable-gps">
+                    <i class="fa-solid fa-location-crosshairs"></i>
+                    <span data-i18n="gps_enable_btn">Find My Location</span>
+                  </button>
+                  <div class="location-status-text" id="gps-status-label" data-i18n="gps_disabled">Tap the button above so we know where you are</div>
+                </div>
+              </div>
+
+              <div class="form-group-row" style="margin-bottom: 0;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label data-i18n="lbl_submission_state">State / Union Territory</label>
+                  <select id="portal-state-select"></select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label data-i18n="lbl_submission_constituency">Lok Sabha Constituency</label>
+                  <select id="portal-constituency-select">
+                    <option value="">Select constituency</option>
+                  </select>
+                </div>
               </div>
             </div>
 
-            <div class="form-group-row">
-              <div class="form-group">
-                <label data-i18n="lbl_submission_state">State / Union Territory</label>
-                <select id="portal-state-select"></select>
-              </div>
-              <div class="form-group">
-                <label data-i18n="lbl_submission_constituency">Lok Sabha Constituency</label>
-                <select id="portal-constituency-select">
-                  <option value="">Select constituency</option>
-                </select>
+            <!-- CARD 2: Sample Templates -->
+            <div class="form-section-card">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label data-i18n="lbl_demo_scenarios">Sample Templates</label>
+                <p class="form-hint" data-i18n="lbl_demo_hint">Click a sample case to auto-fill state, constituency, and grievance text</p>
+                <div class="demo-scenario-grid" id="demo-scenario-grid"></div>
               </div>
             </div>
 
-            <div class="form-group">
-              <label data-i18n="lbl_demo_scenarios">Sample Templates</label>
-              <p class="form-hint" data-i18n="lbl_demo_hint">Click a sample case to auto-fill state, constituency, and grievance text</p>
-              <div class="demo-scenario-grid" id="demo-scenario-grid"></div>
-            </div>
-
-            <div class="form-group-row">
-              <div class="form-group">
+            <!-- CARD 3: Submission Channel -->
+            <div class="form-section-card">
+              <div class="form-group" style="margin-bottom: 0;">
                 <label data-i18n="lbl_submission_channel">Submission Channel</label>
                 <select id="portal-channel-select">
                   <option value="Web" selected>Web Application Portal</option>
@@ -241,63 +256,66 @@
                   <option value="SMS">SMS Portal</option>
                 </select>
               </div>
-            </div>
 
-            <div class="channel-action-panel" id="portal-channel-panel">
-              <div class="channel-action-header">
-                <div class="channel-action-icon" id="portal-channel-icon-wrap">
-                  <i class="fa-solid fa-globe" id="portal-channel-icon"></i>
+              <div class="channel-action-panel" id="portal-channel-panel" style="margin-bottom: 0;">
+                <div class="channel-action-header">
+                  <div class="channel-action-icon" id="portal-channel-icon-wrap">
+                    <i class="fa-solid fa-globe" id="portal-channel-icon"></i>
+                  </div>
+                  <div class="channel-action-text">
+                    <strong id="portal-channel-title">Web Application Portal</strong>
+                    <p class="form-hint" id="portal-channel-desc">Submit through this secure portal.</p>
+                    <div class="channel-helpline-meta" id="portal-channel-meta"></div>
+                  </div>
                 </div>
-                <div class="channel-action-text">
-                  <strong id="portal-channel-title">Web Application Portal</strong>
-                  <p class="form-hint" id="portal-channel-desc">Submit through this secure portal.</p>
-                  <div class="channel-helpline-meta" id="portal-channel-meta"></div>
-                </div>
+                <a id="portal-channel-direct-link" class="btn-secondary channel-direct-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">
+                  <i class="fa-brands fa-whatsapp"></i>
+                  <span id="portal-channel-link-label">Open Channel</span>
+                </a>
               </div>
-              <a id="portal-channel-direct-link" class="btn-secondary channel-direct-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">
-                <i class="fa-brands fa-whatsapp"></i>
-                <span id="portal-channel-link-label">Open Channel</span>
-              </a>
             </div>
 
-            <div class="form-group">
-              <label data-i18n="lbl_text_transcript">Write your problem here</label>
-              <p class="form-hint" data-i18n="lbl_text_hint">Example: "No clean water for 3 days" or "Road has big holes near school"</p>
-              <textarea id="portal-feedback-text" rows="5" placeholder="Describe the issue in your chosen language..."></textarea>
-            </div>
-
-            <div class="form-group">
-              <label data-i18n="lbl_attachments">Or use voice / photo</label>
-              <div class="attachment-slots">
-                <div class="upload-slot upload-slot-friendly" id="slot-mic-record" role="button" tabindex="0" aria-label="Record voice message">
-                  <div class="record-pulse-ring" id="mic-pulse-ring"></div>
-                  <i class="fa-solid fa-microphone" id="mic-icon-graphic"></i>
-                  <span id="txt-mic-status" data-i18n="slot_record_voice">Tap to Speak</span>
-                </div>
-                <div class="upload-slot upload-slot-friendly" id="slot-camera-upload" role="button" tabindex="0" aria-label="Take photo with camera">
-                  <i class="fa-solid fa-camera"></i>
-                  <span id="txt-cam-status" data-i18n="slot_upload_photo">Take a Photo</span>
-                </div>
-                <div class="upload-slot upload-slot-friendly" id="slot-file-upload" role="button" tabindex="0" aria-label="Upload photo from files">
-                  <i class="fa-solid fa-image"></i>
-                  <span id="txt-file-status">Choose from Files</span>
-                </div>
+            <!-- CARD 4: Describe Your Problem -->
+            <div class="form-section-card">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label data-i18n="lbl_text_transcript">Write your problem here</label>
+                <p class="form-hint" data-i18n="lbl_text_hint">Example: "No clean water for 3 days" or "Road has big holes near school"</p>
+                <textarea id="portal-feedback-text" rows="5" placeholder="Describe the issue in your chosen language..."></textarea>
               </div>
-              <input type="file" id="portal-camera-input" accept="image/*" capture="environment" style="display:none;">
-              <input type="file" id="portal-file-input" accept="image/*" style="display:none;">
-            </div>
 
-            <!-- Simulated live recording timer or indicators -->
-            <div class="recording-bar" id="record-timer-bar" style="display: none;">
-              <span class="record-indicator-dot"></span>
-              <span id="record-timer-clock">00:00</span>
-              <span data-i18n="recording_active" style="font-size:0.75rem; color:var(--text-muted);">Recording Active. Tap slot again to STOP & Transcribe...</span>
-            </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label data-i18n="lbl_attachments">Or use voice / photo</label>
+                <div class="attachment-slots">
+                  <div class="upload-slot upload-slot-friendly" id="slot-mic-record" role="button" tabindex="0" aria-label="Record voice message">
+                    <div class="record-pulse-ring" id="mic-pulse-ring"></div>
+                    <i class="fa-solid fa-microphone" id="mic-icon-graphic"></i>
+                    <span id="txt-mic-status" data-i18n="slot_record_voice">Tap to Speak</span>
+                  </div>
+                  <div class="upload-slot upload-slot-friendly" id="slot-camera-upload" role="button" tabindex="0" aria-label="Take photo with camera">
+                    <i class="fa-solid fa-camera"></i>
+                    <span id="txt-cam-status" data-i18n="slot_upload_photo">Take a Photo</span>
+                  </div>
+                  <div class="upload-slot upload-slot-friendly" id="slot-file-upload" role="button" tabindex="0" aria-label="Upload photo from files">
+                    <i class="fa-solid fa-image"></i>
+                    <span id="txt-file-status">Choose from Files</span>
+                  </div>
+                </div>
+                <input type="file" id="portal-camera-input" accept="image/*" capture="environment" style="display:none;">
+                <input type="file" id="portal-file-input" accept="image/*" style="display:none;">
+              </div>
 
-            <!-- Custom Photo Preview -->
-            <div class="image-preview-panel" id="portal-photo-preview">
-              <div class="image-preview-overlay" id="portal-photo-filename">citizen_upload.jpg</div>
-              <img id="portal-preview-img" src="" alt="Citizen attachment preview">
+              <!-- Simulated live recording timer or indicators -->
+              <div class="recording-bar" id="record-timer-bar" style="display: none; margin-bottom: 0;">
+                <span class="record-indicator-dot"></span>
+                <span id="record-timer-clock">00:00</span>
+                <span data-i18n="recording_active" style="font-size:0.75rem; color:var(--text-muted);">Recording Active. Tap slot again to STOP & Transcribe...</span>
+              </div>
+
+              <!-- Custom Photo Preview -->
+              <div class="image-preview-panel" id="portal-photo-preview" style="margin-bottom: 0;">
+                <div class="image-preview-overlay" id="portal-photo-filename">citizen_upload.jpg</div>
+                <img id="portal-preview-img" src="" alt="Citizen attachment preview">
+              </div>
             </div>
 
             <button class="btn-primary btn-friendly btn-submit-large" id="btn-citizen-submit">

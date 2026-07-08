@@ -1314,6 +1314,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupThemeToggle();
   setupDemoBanner();
   setupAccessibilityFeatures();
+  setupMobileMenu();
   
   // Set date
   const dateEl = document.getElementById("live-date");
@@ -1322,6 +1323,32 @@ document.addEventListener("DOMContentLoaded", () => {
     dateEl.innerText = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   }
 });
+
+function setupMobileMenu() {
+  const menuBtn = document.getElementById("mobile-menu-btn");
+  const sidebar = document.querySelector(".sidebar");
+  const overlay = document.getElementById("sidebar-overlay");
+  const navItems = document.querySelectorAll(".nav-item");
+
+  if (menuBtn && sidebar && overlay) {
+    menuBtn.addEventListener("click", () => {
+      sidebar.classList.add("open");
+      overlay.classList.add("active");
+    });
+
+    overlay.addEventListener("click", () => {
+      sidebar.classList.remove("open");
+      overlay.classList.remove("active");
+    });
+
+    navItems.forEach(item => {
+      item.addEventListener("click", () => {
+        sidebar.classList.remove("open");
+        overlay.classList.remove("active");
+      });
+    });
+  }
+}
 
 // Initialize all state/constituency dropdowns from official dataset
 function initConstituencyDropdowns() {
@@ -2419,12 +2446,12 @@ function renderCitizenHistory() {
   userSubmissions.forEach(sub => {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td>${sub.date}</td>
-      <td><strong>${sub.state}</strong></td>
-      <td>${sub.text}</td>
-      <td><span class="badge ${sub.themeClass}">${sub.theme}</span></td>
-      <td><span class="score-badge" style="background:transparent; border-color:var(--urgency-high); color:var(--urgency-high);">${sub.urgency}</span></td>
-      <td><span style="color:#fbbf24; font-weight:600; font-size:0.75rem;"><i class="fa-solid fa-clock"></i> ${sub.status}</span></td>
+      <td data-label="Date Submitted">${sub.date}</td>
+      <td data-label="State Area"><strong>${sub.state}</strong></td>
+      <td data-label="Description">${sub.text}</td>
+      <td data-label="Theme"><span class="badge ${sub.themeClass}">${sub.theme}</span></td>
+      <td data-label="Severity"><span class="score-badge" style="background:transparent; border-color:var(--urgency-high); color:var(--urgency-high);">${sub.urgency}</span></td>
+      <td data-label="Status"><span style="color:#fbbf24; font-weight:600; font-size:0.75rem;"><i class="fa-solid fa-clock"></i> ${sub.status}</span></td>
     `;
     container.appendChild(row);
   });
